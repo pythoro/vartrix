@@ -19,6 +19,7 @@ class Box_Mock():
 class Test_Container(unittest.TestCase):
     def test_instantiate(self):
         c = Container()
+        self.assertTrue(isinstance(c, dict))
 
     def test_hash(self):
         c = Container()

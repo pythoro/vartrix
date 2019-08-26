@@ -39,7 +39,7 @@ class Box(dict):
     def add_dotkey(self, dotkey):
         container = self.container.get(dotkey)
         if not isinstance(container, Container):
-            raise KeyError
+            raise KeyError('Key "' + str(dotkey) + '" is not a Container')
         self._hook_to_container(container, dotkey)
     
     def _hook_to_container(self, container, dotkey):
@@ -55,20 +55,18 @@ class Box(dict):
             super().__setitem__(key, val)
     
     def set(self, key, val):
-        only_dct = None
+        container = None
         for dotkey in self.dotkeys:
-            dct = self.container.get(dotkey)
-            if key in dct:
-                if only_dct is not None:
+            c = self.container.get(dotkey)
+            if key in c:
+                if container is not None:
                     self._clash_error(key, dotkey)
-                only_dct = dct
-        if only_dct is not None:
-            only_dct[key] = val
+                container = c
+        if container is not None:
+            container.set(key, val)
         else:
             self._key_error(key)
     
     def __setitem__(self, key, val):
         self.set(key, val)
-        self[key] = val
-
         
