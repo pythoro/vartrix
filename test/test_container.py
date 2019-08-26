@@ -87,3 +87,24 @@ class Test_Container(unittest.TestCase):
         dct = {'a.b': 6}
         c.dset(dct)
         self.assertEqual(c.flat(), dct)
+
+    def test_load(self):
+        c = Container()
+        dct = {'a.b': 6,
+               'c': {'d': 9}}
+        c.load(dct)
+        expected = {'a.b': 6,
+                    'c.d': 9}
+        self.assertEqual(c.flat(), expected)
+        self.assertTrue(isinstance(c['a'], Container))
+        self.assertTrue(isinstance(c['c'], Container))
+        
+    def test_load_on_instantiate(self):
+        dct = {'a.b': 6,
+               'c': {'d': 9}}
+        c = Container(dct)
+        expected = {'a.b': 6,
+                    'c.d': 9}
+        self.assertEqual(c.flat(), expected)
+        self.assertTrue(isinstance(c['a'], Container))
+        self.assertTrue(isinstance(c['c'], Container))

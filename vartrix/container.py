@@ -11,9 +11,11 @@ import weakref
 class Container(dict):
     ''' An awesome little nesting dictionary '''
     
-    def __init__(self):
+    def __init__(self, dct=None):
         self.__hash = hash(uuid.uuid4())
         self._observers = weakref.WeakSet()
+        if dct is not None:
+            self.load(dct)
     
     def __hash__(self):
         return self.__hash
@@ -72,16 +74,22 @@ class Container(dict):
         for dotkey, val in dct.items():
             self.set(dotkey, val, safe=safe)
     
-    def flat(self, dct=None, parents=None):
+    def flat(self, dct=None, parents=None, current=None):
         ''' Create a flat dictionary (recursively) '''
-        dct = {} if dct is None else dct
+        dct = self if dct is None else dct
+        current = {} if current is None else current
         parents = [] if parents is None else parents
-        for key, obj in self.items():
+        for key, obj in dct.items():
             full_key = parents + [str(key)]
-            if type(obj) is type(self):
-                obj.flat(dct, parents=full_key)
+            if isinstance(obj, dict):
+                self.flat(obj, parents=full_key, current=current)
             else:
-                dct['.'.join(full_key)] = obj
-        return dct
+                current['.'.join(full_key)] = obj
+        return current
     
+    def load(self, dct):
+        flat = self.flat(dct)
+        self.dset(flat)
+                
+                
     
