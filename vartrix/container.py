@@ -56,18 +56,18 @@ class Container(dict):
         self.lset(key_list, val, safe=safe)
         
     def lset(self, key_list, val, safe=False):
-        obj = self
+        container = self
         for key in key_list[:-1]:
-            if safe and key not in obj:
+            if safe and key not in container:
                 raise KeyError('In safe mode, key "' 
                                + '.'.join(key_list) + '" must be present.')
-            obj = obj[key]
+            container = container[key]
         k = key_list[-1]
-        if safe and k not in obj:
+        if safe and k not in container:
             raise KeyError('In safe mode, key "' 
                            + '.'.join(key_list) + '" must be present.')
-        obj[key_list[-1]] = val
-        obj.update_observers(key_list[-1], val)
+        container[k] = val
+        container.update_observers(k, val)
 
     def dset(self, dct, safe=False):
         ''' Pull in values from a flat dct '''
