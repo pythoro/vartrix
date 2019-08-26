@@ -6,17 +6,14 @@ Created on Mon Aug 26 11:00:07 2019
 """
 
 import uuid
-
-from functools import lru_cache
-
-from . import settings
-
+import weakref
 
 class Container(dict):
     ''' An awesome little nesting dictionary '''
     
     def __init__(self):
         self.__hash = hash(uuid.uuid4())
+        self._observers = weakref.WeakSet()
     
     def __hash__(self):
         return self.__hash
@@ -25,9 +22,17 @@ class Container(dict):
         value = self[key] = type(self)()
         return value
 
-    @lru_cache(maxsize=settings.CONTAINER_CACHE_SIZE)
+    def register_observer(self, box):
+        self._observers.add(box)
+
+    def update_observers(self, key, val):
+        for box in self._observers:
+            box.box_update(key, val)
+
     def get(self, dotkey):
         # Use singledispatch instead - might be faster
+        if dotkey is None:
+            return self
         key_list = dotkey.split('.')
         return self.lget(key_list)
 
@@ -42,10 +47,7 @@ class Container(dict):
         for dotkey in dotkeys:
             dct[dotkey] = self.get(dotkey)
         return dct
-        
-    def clear_cache(self):
-        self.get.cache_clear()
-    
+            
     def set(self, dotkey, val, safe=False):
         # Use singledispatch instead - might be faster
         key_list = dotkey.split('.')
@@ -63,7 +65,7 @@ class Container(dict):
             raise KeyError('In safe mode, key "' 
                            + '.'.join(key_list) + '" must be present.')
         obj[key_list[-1]] = val
-        self.clear_cache()
+        obj.update_observers(key_list[-1], val)
 
     def dset(self, dct, safe=False):
         ''' Pull in values from a flat dct '''

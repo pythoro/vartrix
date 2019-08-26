@@ -7,16 +7,19 @@ Created on Mon Aug 26 15:04:56 2019
 
 import uuid
 
-from functools import lru_cache
+from .container import Container
 
-from . import settings
-
-class Box():
+class Box(dict):
     def __init__(self, container, dotkeys, keep_live=True):
-        self.dotkeys = dotkeys
+        self.__hash = hash(uuid.uuid4())
+        self.dotkeys = []
         self.container = container
         self.keep_live = keep_live
-        self.__hash = hash(uuid.uuid4())
+        if dotkeys is None:
+            self._hook_to_container(container, None)
+        else:
+            for dotkey in dotkeys:
+                self.add_dotkey(dotkey)
         # could cache on creation - then make clearing the cache optional to store values.
         # Cache couldn't be cleared, but that's OK.
     
@@ -29,31 +32,28 @@ class Box():
                        + 'one of: "' + '"; "'.join(self.dotkeys) + '"')
 
     def _key_error(self, key):
-        raise KeyError('Key "' + str(key) + '" not found in any of: "' +
+        raise KeyError('Key "' + str(key) + '" must exist in one of these ' +
+                       'dotkeys: "' +
                        '"; "'.join(self.dotkeys) + '"')
     
     def add_dotkey(self, dotkey):
+        container = self.container.get(dotkey)
+        if not isinstance(container, Container):
+            raise KeyError
+        self._hook_to_container(container, dotkey)
+    
+    def _hook_to_container(self, container, dotkey):
+        container.register_observer(self)
+        for key in container.keys():
+            if key in self:
+                self._clash_error(key, dotkey)
+        self.update(container)
         self.dotkeys.append(dotkey)
-    
-    def clear_cache(self):
+           
+    def box_update(self, key, val):
         if self.keep_live:
-            self.get.cache_clear()
-            self.__getitem__.cache_clear()
+            super().__setitem__(key, val)
     
-    @lru_cache(maxsize=settings.BOX_CACHE_SIZE)
-    def get(self, key):
-        only_dct = None
-        for dotkey in self.dotkeys:
-            dct = self.container.get(dotkey)
-            if key in dct:
-                if only_dct is not None:
-                    self._clash_error(key, dotkey)
-                only_dct = dct
-        if only_dct is not None:
-            return only_dct[key]
-        else:
-            self._key_error(key)
-        
     def set(self, key, val):
         only_dct = None
         for dotkey in self.dotkeys:
@@ -64,33 +64,11 @@ class Box():
                 only_dct = dct
         if only_dct is not None:
             only_dct[key] = val
-            self.clear_cache()
         else:
             self._key_error(key)
     
-    @lru_cache(maxsize=settings.BOX_CACHE_SIZE)
-    def __getitem__(self, key):
-        return self.get(key)
-    
     def __setitem__(self, key, val):
         self.set(key, val)
-    
-    def combine(self):
-        ''' Combines keys and checks for errors '''
-        d = {}
-        for dotkey in self.dotkeys:
-            dct = self.container.get(dotkey)
-            for key in dct.keys():
-                if key in d:
-                    self._clash_error(key, dotkey)
-            d.update(dct)
-        return d
+        self[key] = val
+
         
-    def __str__(self):
-        return str(self.combine())
-            
-    def __repr__(self):
-        return str(self)
-            
-    def copy(self):
-        return self.combine() # maybe different method to clone?
