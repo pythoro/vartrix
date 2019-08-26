@@ -90,6 +90,20 @@ class Container(dict):
     def load(self, dct):
         flat = self.flat(dct)
         self.dset(flat)
-                
-                
+        
+    @classmethod
+    def combine(cls, containers):
+        ''' Combine a dictionary of containers '''
+        c = cls()
+        c.update(containers)
+        return c
+    
+    @classmethod
+    def merge(cls, containers):
+        ''' Combine a dictionary of containers '''
+        c = cls()
+        for container in containers:
+            c.update(container)
+            c._observers |= container._observers # set union, in place
+        return c
     

@@ -108,3 +108,35 @@ class Test_Container(unittest.TestCase):
         self.assertEqual(c.flat(), expected)
         self.assertTrue(isinstance(c['a'], Container))
         self.assertTrue(isinstance(c['c'], Container))
+        
+    def test_combine(self):
+        d1 = {'b': 5}
+        d2 = {'d': 7}
+        c1 = Container(d1)
+        c2 = Container(d2)
+        c = Container.combine({'c1': c1, 'c2': c2})
+        expected = {'c1.b': 5,
+                    'c2.d': 7}
+        self.assertEqual(c.flat(), expected)
+        self.assertEqual(c['c1'], c1)
+        self.assertEqual(c['c2'], c2)
+        
+    def test_merge(self):
+        d1 = {'a.b': 5}
+        d2 = {'c.d': 7}
+        c1 = Container(d1)
+        b1 = Box_Mock()
+        c1.register_observer(b1)
+        c2 = Container(d2)
+        b2 = Box_Mock()
+        c2.register_observer(b2)
+        c3 = c1['a']
+        c4 = c2['c']
+        c = Container.merge([c1, c2])
+        expected = {'a.b': 5,
+                    'c.d': 7}
+        self.assertEqual(c.flat(), expected)
+        self.assertEqual(c['a'], c3)
+        self.assertEqual(c['c'], c4)
+        self.assertIn(b1, c._observers)
+        self.assertIn(b2, c._observers)
