@@ -5,14 +5,27 @@ Created on Mon Aug 26 11:00:07 2019
 @author: Reuben
 """
 
+import uuid
+
+from functools import lru_cache
+
+from . import settings
+
 
 class Container(dict):
     ''' An awesome little nesting dictionary '''
+    
+    def __init__(self):
+        self.__hash = hash(uuid.uuid4())
+    
+    def __hash__(self):
+        return self.__hash
+    
     def __missing__(self, key):
         value = self[key] = type(self)()
         return value
 
-    # use lru_cache
+    @lru_cache(maxsize=settings.CONTAINER_CACHE_SIZE)
     def get(self, dotkey):
         # Use singledispatch instead - might be faster
         key_list = dotkey.split('.')
@@ -30,6 +43,9 @@ class Container(dict):
             dct[dotkey] = self.get(dotkey)
         return dct
         
+    def clear_cache(self):
+        self.get.cache_clear()
+    
     def set(self, dotkey, val, safe=False):
         # Use singledispatch instead - might be faster
         key_list = dotkey.split('.')
@@ -47,14 +63,13 @@ class Container(dict):
             raise KeyError('In safe mode, key "' 
                            + '.'.join(key_list) + '" must be present.')
         obj[key_list[-1]] = val
-        # clear cache
+        self.clear_cache()
 
     def dset(self, dct, safe=False):
         ''' Pull in values from a flat dct '''
         for dotkey, val in dct.items():
             self.set(dotkey, val, safe=safe)
     
-    # could lru_cache - this would be faster I think
     def flat(self, dct=None, parents=None):
         ''' Create a flat dictionary (recursively) '''
         dct = {} if dct is None else dct

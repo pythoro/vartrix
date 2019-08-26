@@ -5,12 +5,23 @@ Created on Mon Aug 26 15:04:56 2019
 @author: Reuben
 """
 
+import uuid
+
+from functools import lru_cache
+
+from . import settings
+
 class Box():
-    def __init__(self, container, dotkeys):
+    def __init__(self, container, dotkeys, keep_live=True):
         self.dotkeys = dotkeys
         self.container = container
+        self.keep_live = keep_live
+        self.__hash = hash(uuid.uuid4())
         # could cache on creation - then make clearing the cache optional to store values.
         # Cache couldn't be cleared, but that's OK.
+    
+    def __hash__(self):
+        return self.__hash
     
     def _clash_error(self, key, dotkey):
         raise KeyError('Key "' + str(key) + '" defined in '
@@ -24,7 +35,12 @@ class Box():
     def add_dotkey(self, dotkey):
         self.dotkeys.append(dotkey)
     
-    # use lru_cache for performance
+    def clear_cache(self):
+        if self.keep_live:
+            self.get.cache_clear()
+            self.__getitem__.cache_clear()
+    
+    @lru_cache(maxsize=settings.BOX_CACHE_SIZE)
     def get(self, key):
         only_dct = None
         for dotkey in self.dotkeys:
@@ -48,11 +64,11 @@ class Box():
                 only_dct = dct
         if only_dct is not None:
             only_dct[key] = val
-            # clear cache
+            self.clear_cache()
         else:
             self._key_error(key)
     
-    # use lru_cache
+    @lru_cache(maxsize=settings.BOX_CACHE_SIZE)
     def __getitem__(self, key):
         return self.get(key)
     
