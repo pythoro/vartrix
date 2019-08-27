@@ -10,6 +10,7 @@ import uuid
 from .container import Container
 
 class Box(dict):
+    ''' A Box combines data from specific Containers into a single place'''
     def __init__(self, container, dotkeys, keep_live=True):
         self.__hash = hash(uuid.uuid4())
         self.dotkeys = []
