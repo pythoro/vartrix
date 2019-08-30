@@ -48,20 +48,22 @@ class Flat(dict):
             return self.copy()
         out = {}
         for key, val in self.items():
-            split = key.split('.')
-            k = split.pop()
-            root = '.'.join(split)
+            root, k = self._split_dotkey(key)
             if root == dotkey:
                 out[k] = val
         return out
 
     def update_observers(self, dotkey, val):
-        split = dotkey.split('.')
-        key = split.pop()
-        root = '.'.join(split)
-        root = '__ROOT__' if root == '' else root
+        root, key = self._split_dotkey(dotkey)
         for view in self._observers[root]:
             view._view_update(key, val)
 
     def __setitem__(self, key, val):
         return self.set(key, val)
+    
+    def _split_dotkey(self, dotkey):
+        split = dotkey.split('.')
+        k = split.pop()
+        root = '.'.join(split)
+        root = '__ROOT__' if root == '' else root
+        return root, k
