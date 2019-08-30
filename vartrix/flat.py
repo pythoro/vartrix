@@ -8,6 +8,16 @@ Created on Tue Aug 27 19:52:22 2019
 import weakref
 from collections import defaultdict
 
+def is_root(dotkey):
+    return dotkey in [None, '__ROOT__', '', '.']
+
+def safe_root(dotkey):
+    if is_root(dotkey):
+        return '__ROOT__'
+    else:
+        return dotkey
+    
+
 class Flat(dict):
     ''' An dictionary with some extra methods'''
 
@@ -41,10 +51,10 @@ class Flat(dict):
             self.set(dotkey, val, safe=safe)
 
     def register_observer(self, dotkey, view):
-        self._observers[dotkey].add(view)
+        self._observers[safe_root(dotkey)].add(view)
 
     def get_dct(self, dotkey):
-        if dotkey in ['__ROOT__', None, '', '.']:
+        if is_root(dotkey):
             return self.copy()
         out = {}
         for key, val in self.items():
@@ -64,8 +74,7 @@ class Flat(dict):
     def _split_dotkey(self, dotkey):
         split = dotkey.split('.')
         k = split.pop()
-        root = '.'.join(split)
-        root = '__ROOT__' if root == '' else root
+        root = safe_root('.'.join(split))
         return root, k
 
     def _nest(self, key_list, val, dct=None):
