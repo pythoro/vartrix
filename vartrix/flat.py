@@ -19,7 +19,7 @@ def safe_root(dotkey):
     
 
 class Flat(dict):
-    ''' An dictionary with some extra methods'''
+    ''' An dictionary with observers '''
 
     def __init__(self, dct=None):
         self._observers = defaultdict(weakref.WeakSet)
