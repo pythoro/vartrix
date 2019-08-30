@@ -24,9 +24,7 @@ class Automator():
 class Looper():
     def __init__(self, set_data, automated_cls):
         self.automated_cls = automated_cls
-        aliases = Aliases(set_data['aliases'])
-        vectors = Vectors(set_data['vectors'])
-        sequences = Sequences(set_data['sequences'], vectors, aliases)
+        sequences = Sequences(set_data)
     
     
     
@@ -68,13 +66,13 @@ class Vector():
     def get_lst(self, lst=None, d=None):
         lst = [] if lst is None else lst
         d = {} if d is None else d
-        for k, vec in self.data.items():
-            for val in vec:
-                d[k] = val
-                if self.child is not None:
-                    self.child.get_lst(lst, d)
-                else:
-                    lst.append(d.copy())
+        for i in range(self.n):
+            for k, vec in self.data.items():
+                d[k] = vec[i]
+            if self.child is not None:
+                self.child.get_lst(lst, d)
+            else:
+                lst.append(d.copy())
         return lst
     
     def get_label_lst(self, lst=None, d=None):
@@ -106,8 +104,18 @@ class Vectors():
         return root.get_lst(), root.get_label_lst()
         
         
-class Sequences(dict):
-    def __init__(self, data, vectors, aliases):
-        self.aliases = aliases
-        self.vectors = vectors
-        self.update(data)
+class Sequences():
+    def __init__(self, data):
+        self.sequences = data['sequences']
+        self.aliases = Aliases(data['aliases'])
+        self.vectors = Vectors(data['vectors'])
+        
+    def sequence(self, i):
+        dct = {}
+        s = self.sequences[i]
+        for method, v_names in s.items():
+            lst, labels = self.vectors.loop(v_names)
+            lst = [self.aliases.translate(d) for d in lst]
+            dct[method] = {'lst': lst, 'labels': labels}
+        return dct
+        

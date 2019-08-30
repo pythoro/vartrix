@@ -1,17 +1,22 @@
 set_name:
     aliases:
-        alias_1: some.real.dotkey
-        alias_2: some.other.real.dotkey
+        alias_1: alias.one
+        alias_2: alias.two
+        alias_3: alias.three
+        alias_5: alias.four
     vectors:
-        name_1:
-            alias_2: [0, 2, 3, 4]
-        name_2:
+        vec_1:
+            alias_1: [0, 2, 3, 4]
+        vec_2:
             labels:  ['a', 'b', 'c']
-            alias_1: [  2,   3,   4]
-            alias_2: [  6,   7,   8]
-        name_3:
+            alias_2: [  2,   3,   4]
+            alias_3: [  6,   7,   8]
+        vec_3:
             labels: ['3', '5']
-            alias_5: [4, 5]
+            alias_4: [4, 5]
     sequences:
-        - method_a: [name_1]
+        - method_a: [vec_1]
+        - method_b: [vec_1, vec_2]
+          method_a: [vec_2, vec_3]
+        - method_c: [vec_1, vec_3]
         
