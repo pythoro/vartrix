@@ -17,6 +17,30 @@ def get_f_mock():
     return f
 
 class Test_View(unittest.TestCase):
+    def test_init(self):
+        f = get_f_mock()
+        dotkeys = ['a']
+        v = View(f, dotkeys)
+        self.assertTrue(isinstance(v, dict))
+        
+    def test_init_none(self):
+        f = get_f_mock()
+        v = View(f, dotkeys=None)
+        self.assertTrue(isinstance(v, dict))
+        self.assertDictEqual(f, v)
+
+    def test_init_empty(self):
+        f = get_f_mock()
+        v = View(f, dotkeys=[''])
+        self.assertTrue(isinstance(v, dict))
+        self.assertDictEqual(f, v)
+
+    def test_init_dot(self):
+        f = get_f_mock()
+        v = View(f, dotkeys=['.'])
+        self.assertTrue(isinstance(v, dict))
+        self.assertDictEqual(f, v)
+    
     def test_get(self):
         f = get_f_mock()
         dotkeys = ['a']

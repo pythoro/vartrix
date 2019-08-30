@@ -17,9 +17,9 @@ class View(dict):
         self._flat = flat
         self.dotkeys = []
         self.keep_live = keep_live
-        if dotkeys is not None:
-            for dotkey in dotkeys:
-                self._add_dotkey(dotkey)
+        dotkeys = ['__ROOT__'] if dotkeys is None else dotkeys
+        for dotkey in dotkeys:
+            self._add_dotkey(dotkey)
         
     def __hash__(self):
         return self.__hash

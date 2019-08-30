@@ -44,12 +44,13 @@ class Flat(dict):
         self._observers[dotkey].add(view)
 
     def get_dct(self, dotkey):
+        if dotkey in ['__ROOT__', None, '', '.']:
+            return self.copy()
         out = {}
         for key, val in self.items():
             split = key.split('.')
             k = split.pop()
             root = '.'.join(split)
-            root = '__ROOT__' if root == '' else root
             if root == dotkey:
                 out[k] = val
         return out
