@@ -33,18 +33,33 @@ class View(dict):
         raise KeyError('Key "' + str(key) + '" defined in '
                        + dotkey + ' when already present in '
                        + 'one of: "' + '"; "'.join(self.dotkeys) + '"')
-    
+        
     def _hook_to_flat(self, dotkey):
-        flat = self._flat
-        flat.register_observer(dotkey, self)
-        dct = flat.get_dct(dotkey)
+        self._flat.register_observer(dotkey, self)
+        self._update(dotkey)
+        self.dotkeys.append(dotkey)
+        
+    def _update(self, dotkey):
+        dct = self._flat.get_dct(dotkey)
         for key in dct.keys():
             if key in self:
                 self._clash_error(key, dotkey)
         self.update(dct)
         for k, v in dct.items():
             setattr(self, k, v)
-        self.dotkeys.append(dotkey)
+        
+    def refresh(self, dotkey):
+        old_keys = self.keys()
+        self.clear()
+        self._update(dotkey)
+        new_keys = self.keys()
+        for old_key in old_keys:
+            if old_key not in new_keys:
+                delattr(self, old_key)
+    
+    def refresh_all(self):
+        for dotkey in self.dotkeys:
+            self.refresh(dotkey)
         
     def get(self, key):
         return self[key]

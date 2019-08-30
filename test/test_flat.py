@@ -20,13 +20,20 @@ class View_Mock():
     def _view_update(self, key, val):
         self.key = key
         self.val = val
-
+        
+    def refresh(self, dotkey):
+        self.refresh = dotkey
 
 class Test_Flat(unittest.TestCase):
     def test_instantiate(self):
         f = Flat()
         self.assertTrue(isinstance(f, dict))
-            
+
+    def test_load_on_init(self):
+        dct = {'a.b': 6}
+        f = Flat(dct)
+        self.assertDictEqual(dct, f)
+
     def test_register_observer(self):
         f = Flat()
         b = View_Mock()
@@ -89,3 +96,45 @@ class Test_Flat(unittest.TestCase):
         expected = {'a': {'b': 5},
                     'b': {'c': 7}}
         self.assertDictEqual(ret, expected)
+        
+    def test_load(self):
+        f = Flat()
+        dct = {'a.b': 6}
+        f.load(dct)
+        self.assertDictEqual(dct, f)
+        
+    def test_refresh_observer_on_load(self):
+        dct = {'a.b': 6}
+        f = Flat(dct)
+        b = View_Mock()
+        f.register_observer('a', b)
+        dct2 = {'a.b': 7,
+                'a.e': 45}
+        f.load(dct2)
+        self.assertEqual(b.refresh, 'a')
+
+    def test_combine(self):
+        d1 = {'b': 5}
+        d2 = {'d': 7}
+        c1 = Flat(d1)
+        c2 = Flat(d2)
+        c = Flat.combine({'c1': c1, 'c2': c2})
+        expected = {'c1.b': 5,
+                    'c2.d': 7}
+        self.assertEqual(c, expected)
+        
+    def test_merge(self):
+        d1 = {'a.b': 5}
+        d2 = {'c.d': 7}
+        c1 = Flat(d1)
+        b1 = View_Mock()
+        c1.register_observer('a', b1)
+        c2 = Flat(d2)
+        b2 = View_Mock()
+        c2.register_observer('c', b2)
+        c = Flat.merge([c1, c2])
+        expected = {'a.b': 5,
+                    'c.d': 7}
+        self.assertEqual(c, expected)
+        self.assertIn(b1, c._observers['a'])
+        self.assertIn(b2, c._observers['c'])

@@ -21,8 +21,10 @@ def safe_root(dotkey):
 class Flat(dict):
     ''' An dictionary with some extra methods'''
 
-    def __init__(self):
+    def __init__(self, dct=None):
         self._observers = defaultdict(weakref.WeakSet)
+        if dct is not None:
+            self.load(dct)
 
     def get(self, dotkey):
         return self[dotkey]
@@ -94,3 +96,30 @@ class Flat(dict):
             self._nest(key_list, val, dct)
         return dct
     
+    def load(self, dct):
+        self.clear()
+        self.update(dct)
+        for dotkey, observers in self._observers.items():
+            for observer in observers:
+                observer.refresh(dotkey)
+                
+                
+    @classmethod
+    def combine(cls, dct):
+        ''' Combine a dictionary of containers '''
+        c = cls()
+        for key, flat in dct.items():
+            for k, v in flat.items():
+                dotkey = key + '.' + k
+                c[dotkey] = v
+        return c
+    
+    @classmethod
+    def merge(cls, flats):
+        ''' Combine a dictionary of containers '''
+        c = cls()
+        for flat in flats:
+            c.update(flat)
+            for dotkey, observers in flat._observers.items():
+                c._observers[dotkey] |= observers # set union, in place
+        return c
