@@ -67,3 +67,21 @@ class Flat(dict):
         root = '.'.join(split)
         root = '__ROOT__' if root == '' else root
         return root, k
+
+    def _nest(self, key_list, val, dct=None):
+        dct = {} if dct is None else dct
+        if len(key_list) == 1:
+            dct[key_list[0]] = val
+        else:
+            if key_list[0] not in dct:
+                dct[key_list[0]] = {}
+            self._nest(key_list[1:], val, dct[key_list[0]])
+        return dct
+    
+    def nested(self):
+        dct = {}
+        for dotkey, val in self.items():
+            key_list = dotkey.split('.')
+            self._nest(key_list, val, dct)
+        return dct
+    
