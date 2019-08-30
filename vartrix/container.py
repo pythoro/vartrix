@@ -29,7 +29,7 @@ class Container(dict):
 
     def update_observers(self, key, val):
         for box in self._observers:
-            box.box_update(key, val)
+            box._box_update(key, val)
 
     def get(self, dotkey):
         # Use singledispatch instead - might be faster

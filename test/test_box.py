@@ -41,7 +41,7 @@ class Test_Box(unittest.TestCase):
         c = get_c_mock()
         dotkeys = ['a']
         b = Box(c, dotkeys)
-        b.add_dotkey('b')
+        b._add_dotkey('b')
         expected = {'b': 5, 'c': 7}
         self.assertDictEqual(b, expected)
 
@@ -49,7 +49,7 @@ class Test_Box(unittest.TestCase):
         c = get_c_mock()
         dotkeys = ['a']
         b = Box(c, dotkeys)
-        b.box_update('b', 11)        
+        b._box_update('b', 11)        
         self.assertEqual(b['b'], 11)
         
     def test_remote_box_update(self):
@@ -66,6 +66,14 @@ class Test_Box(unittest.TestCase):
         b.set('b', 11)
         self.assertEqual(b['b'], 11)
         self.assertEqual(c.get('a.b'), 11)
+        
+    def test_get_attr(self):
+        c = get_c_mock()
+        dotkeys = ['a']
+        b = Box(c, dotkeys)
+        res = b.b
+        expected = 5
+        self.assertEqual(res, expected)
         
     def test_set_item(self):
         c = get_c_mock()

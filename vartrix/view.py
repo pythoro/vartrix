@@ -19,12 +19,12 @@ class View(dict):
         self.keep_live = keep_live
         if dotkeys is not None:
             for dotkey in dotkeys:
-                self.add_dotkey(dotkey)
+                self._add_dotkey(dotkey)
         
     def __hash__(self):
         return self.__hash
         
-    def add_dotkey(self, dotkey):
+    def _add_dotkey(self, dotkey):
         if dotkey is None or dotkey in ['', '.']:
             dotkey == '__ROOT__'
         self._hook_to_flat(dotkey)
@@ -42,6 +42,8 @@ class View(dict):
             if key in self:
                 self._clash_error(key, dotkey)
         self.update(dct)
+        for k, v in dct.items():
+            setattr(self, k, v)
         self.dotkeys.append(dotkey)
         
     def get(self, key):
@@ -61,7 +63,8 @@ class View(dict):
     def __setitem__(self, key, val):
         return self.set(key, val)
     
-    def view_update(self, key, val):
+    def _view_update(self, key, val):
         if self.keep_live:
             super().__setitem__(key, val)
+            setattr(self, key, val)
     

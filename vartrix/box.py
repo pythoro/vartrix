@@ -20,7 +20,7 @@ class Box(dict):
             self._hook_to_container(container, None)
         else:
             for dotkey in dotkeys:
-                self.add_dotkey(dotkey)
+                self._add_dotkey(dotkey)
         # could cache on creation - then make clearing the cache optional to store values.
         # Cache couldn't be cleared, but that's OK.
     
@@ -37,7 +37,7 @@ class Box(dict):
                        'dotkeys: "' +
                        '"; "'.join(self.dotkeys) + '"')
     
-    def add_dotkey(self, dotkey):
+    def _add_dotkey(self, dotkey):
         container = self.container.get(dotkey)
         if not isinstance(container, Container):
             raise KeyError('Key "' + str(dotkey) + '" is not a Container')
@@ -49,11 +49,14 @@ class Box(dict):
             if key in self:
                 self._clash_error(key, dotkey)
         self.update(container)
+        for k, v in container.items():
+            setattr(self, k, v)
         self.dotkeys.append(dotkey)
            
-    def box_update(self, key, val):
+    def _box_update(self, key, val):
         if self.keep_live:
             super().__setitem__(key, val)
+            setattr(self, key, val)
     
     def set(self, key, val):
         container = None

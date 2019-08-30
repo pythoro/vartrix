@@ -25,6 +25,13 @@ class Test_View(unittest.TestCase):
         expected = 5
         self.assertEqual(res, expected)
         
+    def test_get_attr(self):
+        f = get_f_mock()
+        dotkeys = ['a']
+        v = View(f, dotkeys)
+        res = v.b
+        expected = 5
+        self.assertEqual(res, expected)
         
     def test_set(self):
         f = get_f_mock()

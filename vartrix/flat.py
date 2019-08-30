@@ -60,7 +60,7 @@ class Flat(dict):
         root = '.'.join(split)
         root = '__ROOT__' if root == '' else root
         for view in self._observers[root]:
-            view.view_update(key, val)
+            view._view_update(key, val)
 
     def __setitem__(self, key, val):
         return self.set(key, val)

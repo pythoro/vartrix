@@ -11,7 +11,7 @@ from vartrix.container import Container
 
 
 class Box_Mock():
-    def box_update(self, key, val):
+    def _box_update(self, key, val):
         self.key = key
         self.val = val
         

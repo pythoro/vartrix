@@ -1,0 +1,15 @@
+Aliases:
+	alias_1: some.real.dotkey
+	alias_2: some.other.real.dotkey
+Vectors:
+	name_1:
+		alias_2: [0, 2, 3, 4]
+	name_2:
+		labels:  ['a', 'b', 'c']
+		alias_1: [  2,   3,   4]
+		alias_2: [  6,   7,   8]
+	name_3:
+		labels: ['3', '5']
+		alias_5: [4, 5]
+Sequences:
+	- method_a: [name_1]
