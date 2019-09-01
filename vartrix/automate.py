@@ -110,9 +110,9 @@ class Sequences():
         self.aliases = Aliases(data['aliases'])
         self.vectors = Vectors(data['vectors'])
         
-    def sequence(self, i):
+    def sequence(self, name):
         dct = {}
-        s = self.sequences[i]
+        s = self.sequences[name]
         for method, v_names in s.items():
             lst, labels = self.vectors.loop(v_names)
             lst = [self.aliases.translate(d) for d in lst]
