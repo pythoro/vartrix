@@ -27,20 +27,19 @@ class Looper():
         sequences = Sequences(set_data)
     
     
-    
-class Aliases():
+class Aliases(dict):
     def __init__(self, data):
-        self.data = data
+        self.update(data)
         
     def translate(self, dct):
         out = {}
         for k, v in dct.items():
-            if k in self.data:
-                out[self.data[k]] = v
+            if k in self:
+                out[self[k]] = v
             else:
                 out[k] = v
         return out
-        
+    
     
 class Vector():
     def __init__(self, data, name):
