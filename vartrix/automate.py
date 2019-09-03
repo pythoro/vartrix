@@ -5,7 +5,6 @@ Created on Mon Aug 26 22:12:43 2019
 @author: Reuben
 """
 
-from .flat import Context
 import ruamel.yaml as yml
 
 
@@ -59,13 +58,12 @@ class Vector():
         self.setup(data)
         
     def setup(self, data):
+        def default_labels(d):
+            for v in dct.values():
+                n = len(v)
+                return [i for i in range(n)]
         dct = data.copy()
-        if 'labels' in dct:
-            self.labels = dct['labels']
-            del dct['labels']
-        else:
-            key_list = list(data.keys())
-            self.labels = data[key_list[0]]
+        self.labels = dct.pop('labels', default_labels(dct))
         self.data = dct
         self.n = len(self.labels)
         

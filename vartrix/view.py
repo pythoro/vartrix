@@ -10,7 +10,7 @@ import uuid
 class View(dict):
     ''' Provides a virtual view of a Flat dictionary 
     
-    Could cache as dict values and update like Box class for performance
+    Caches dict values and updates them when set for performance
     '''
     def __init__(self, flat, dotkeys=None, keep_live=True):
         self.__hash = hash(uuid.uuid4())
