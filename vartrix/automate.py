@@ -5,8 +5,9 @@ Created on Mon Aug 26 22:12:43 2019
 @author: Reuben
 """
 
-from .container import Container
+from .flat import Context
 import ruamel.yaml as yml
+
 
 class Automator():
     def __init__(self, flat, fname):
@@ -16,21 +17,30 @@ class Automator():
         
     def run(self, set_name, automated_cls):
         set_data = self.sets[set_name]
-        looper = Looper(set_data, automated_cls)
+        s = Sequencer(set_data[set_name])
+        obj = automated_cls(set_name=set_name)
+        obj.prepare()
+        for name in s.sequence_names:
+            self.execute_sequence(s, name, obj)
+        obj.finish()
+
+    def execute_sequence(self, s, name, obj):
+        obj.prepare_sequence(name)
+        seq_dct = s.sequence(name)
+        flat = self.flat
+        for method_name, (val_list, label_lst) in seq_dct.items():
+            obj.prepare_method(method_name)
+            method = getattr(obj, method_name)
+            with Context(self.flat, val_list[0]):
+                for val_dct, label_dct in zip(val_list, label_lst):
+                    flat.dset(val_dct)
+                    method(val_dct, label_dct)
+            obj.finish_method(method_name)
+        obj.finish_sequence(name)
         
-
-
-
-class Looper():
-    def __init__(self, set_data, automated_cls):
-        self.automated_cls = automated_cls
-        sequences = Sequences(set_data)
-    
     
 class Aliases(dict):
-    def __init__(self, data):
-        self.update(data)
-        
+       
     def translate(self, dct):
         out = {}
         for k, v in dct.items():
@@ -103,18 +113,23 @@ class Vectors():
         return root.get_lst(), root.get_label_lst()
         
         
-class Sequences():
+class Sequencer():
     def __init__(self, data):
         self.sequences = data['sequences']
         self.aliases = Aliases(data['aliases'])
         self.vectors = Vectors(data['vectors'])
         
     def sequence(self, name):
-        dct = {}
+        seq_dct = {}
         s = self.sequences[name]
-        for method, v_names in s.items():
-            lst, labels = self.vectors.loop(v_names)
-            lst = [self.aliases.translate(d) for d in lst]
-            dct[method] = {'lst': lst, 'labels': labels}
-        return dct
+        for method_name, v_names in s.items():
+            val_list, label_lst = self.vectors.loop(v_names)
+            val_list = [self.aliases.translate(d) for d in val_list]
+            seq_dct[method_name] = {'val_list': val_list,
+                                    'label_lst': label_lst}
+        return seq_dct
+    
+    @property
+    def sequence_names(self):
+        return list(self.sequences.keys())
         

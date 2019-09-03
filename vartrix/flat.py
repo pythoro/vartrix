@@ -17,6 +17,20 @@ def safe_root(dotkey):
     else:
         return dotkey
     
+    
+class Context():
+    def __init__(self, flat, val_dct):
+        self.flat = flat
+        self.val_dct = val_dct
+        self.old_val_dct = {k: flat[k] for k in val_dct.keys()}
+    
+    def __enter__(self):
+        self.flat.dset(self.val_dct)
+    
+    def __exit__(self):
+        self.flat.dset(self.old_val_dct)
+
+
 
 class Flat(dict):
     ''' An dictionary with observers '''
