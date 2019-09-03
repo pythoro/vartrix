@@ -31,7 +31,7 @@ class Automator():
         for method_name, (val_list, label_lst) in seq_dct.items():
             obj.prepare_method(method_name)
             method = getattr(obj, method_name)
-            with Context(self.flat, val_list[0]):
+            with flat.context(val_list[0]):
                 for val_dct, label_dct in zip(val_list, label_lst):
                     flat.dset(val_dct)
                     method(val_dct, label_dct)

@@ -138,3 +138,17 @@ class Test_Flat(unittest.TestCase):
         self.assertEqual(c, expected)
         self.assertIn(b1, c._observers['a'])
         self.assertIn(b2, c._observers['c'])
+        
+    def test_context(self):
+        dct = {'a.b': 6, 'a.c': 7}
+        f = Flat(dct)
+        new1 = {'a.b': 66}
+        new2 = {'a.c': 77}
+        with f.context(new1):
+            expected1 = {'a.b': 66, 'a.c': 7}
+            self.assertDictEqual(f, expected1)
+            with f.context(new2):
+                expected2 = {'a.b': 66, 'a.c': 77}
+                self.assertDictEqual(f, expected2)
+            self.assertDictEqual(f, expected1)
+        self.assertDictEqual(dct, f)

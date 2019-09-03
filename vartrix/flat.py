@@ -7,6 +7,7 @@ Created on Tue Aug 27 19:52:22 2019
 
 import weakref
 from collections import defaultdict
+from contextlib import contextmanager
 
 def is_root(dotkey):
     return dotkey in [None, '__ROOT__', '', '.']
@@ -17,20 +18,6 @@ def safe_root(dotkey):
     else:
         return dotkey
     
-    
-class Context():
-    def __init__(self, flat, val_dct):
-        self.flat = flat
-        self.val_dct = val_dct
-        self.old_val_dct = {k: flat[k] for k in val_dct.keys()}
-    
-    def __enter__(self):
-        self.flat.dset(self.val_dct)
-    
-    def __exit__(self):
-        self.flat.dset(self.old_val_dct)
-
-
 
 class Flat(dict):
     ''' An dictionary with observers '''
@@ -117,7 +104,6 @@ class Flat(dict):
             for observer in observers:
                 observer.refresh(dotkey)
                 
-                
     @classmethod
     def combine(cls, dct):
         ''' Combine a dictionary of containers '''
@@ -137,3 +123,11 @@ class Flat(dict):
             for dotkey, observers in flat._observers.items():
                 c._observers[dotkey] |= observers # set union, in place
         return c
+    
+    @contextmanager
+    def context(self, dct):
+        originals = {k: self[k] for k in dct.keys()}
+        self.dset(dct)
+        yield self
+        self.dset(originals)
+        
