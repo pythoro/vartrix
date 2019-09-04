@@ -22,7 +22,8 @@ def safe_root(dotkey):
 class Flat(dict):
     ''' An dictionary with observers '''
 
-    def __init__(self, dct=None):
+    def __init__(self, dct=None, name=None):
+        self.name = name
         self._observers = defaultdict(weakref.WeakSet)
         if dct is not None:
             self.load(dct)

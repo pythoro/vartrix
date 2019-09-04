@@ -11,7 +11,8 @@ import weakref
 class Container(dict):
     ''' An awesome little nesting dictionary '''
     
-    def __init__(self, dct=None):
+    def __init__(self, dct=None, name=None):
+        self.name = name
         self.__hash = hash(uuid.uuid4())
         self._observers = weakref.WeakSet()
         if dct is not None:
