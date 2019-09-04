@@ -15,28 +15,32 @@ class Automator():
         with open(fname) as f:
             self.sets = yml.safe_load(f)
         
-    def run(self, set_name, automated_cls):
+    def run(self, set_name, obj):
         data = self.sets[set_name]
         s = Sequencer(data['sequences'], data['aliases'], data['vectors'])
-        obj = automated_cls(set_name=set_name)
         obj.prepare()
-        for name in s.sequence_names:
-            self.execute_sequence(s, name, obj)
+        for seq_name, seq_dct in s.all_sequences().items():
+            self.execute_sequence(seq_name, seq_dct, obj)
         obj.finish()
 
-    def execute_sequence(self, s, name, obj):
-        obj.prepare_sequence(name)
-        seq_dct = s.sequence(name)
+    def execute_sequence(self, seq_name, seq_dct, obj):
+        obj.prepare_sequence(seq_name)
+        for method_name, dct in seq_dct.items():
+            self.execute_method(method_name,
+                                dct['val_list'],
+                                dct['label_lst'],
+                                obj)
+        obj.finish_sequence(seq_name)
+
+    def execute_method(self, method_name, val_list, label_lst, obj):
         flat = self.flat
-        for method_name, (val_list, label_lst) in seq_dct.items():
-            obj.prepare_method(method_name)
-            method = getattr(obj, method_name)
-            with flat.context(val_list[0]):
-                for val_dct, label_dct in zip(val_list, label_lst):
-                    flat.dset(val_dct)
-                    method(val_dct, label_dct)
-            obj.finish_method(method_name)
-        obj.finish_sequence(name)
+        obj.prepare_method(method_name)
+        method = getattr(obj, method_name)
+        with flat.context(val_list[0]):
+            for val_dct, label_dct in zip(val_list, label_lst):
+                flat.dset(val_dct)
+                method(val_dct, label_dct)
+        obj.finish_method(method_name)
         
     
 class Aliases(dict):
@@ -169,3 +173,11 @@ class Sequencer():
     def sequence_names(self):
         return list(self.sequences.keys())
         
+    def all_sequences(self):
+        out = {}
+        for seq_name in self.sequence_names:
+            seq_dct = self.sequence(seq_name)
+            out[seq_name] = seq_dct
+        return out
+        
+

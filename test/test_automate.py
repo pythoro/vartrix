@@ -34,9 +34,62 @@ def get_test_data():
         sets = yml.safe_load(f)
     return sets
 
-class Test_Automator(unittest.TestCase):
-    pass
 
+class Automated():
+    def __init__(self, set_name):
+        self.set_name = set_name
+        self.prepare_sequence_names = []
+        self.finish_sequence_names = []
+        self.prepare_method_names = []
+        self.finish_method_names = []
+        self.method_a_calls = []
+        self.method_b_calls = []
+        self.method_c_calls = []
+        self.method_d_calls = []
+        
+    def prepare(self):
+        self.prepare = True
+
+    def prepare_sequence(self, seq_name):
+        self.prepare_sequence_names.append(seq_name)
+
+    def prepare_method(self, method_name):
+        self.prepare_method_names.append(method_name)
+
+    def method_a(self, val_dct, label_dct):
+        self.method_a_calls.append({'val_dct': val_dct,
+                                    'label_dct': label_dct})
+
+    def method_b(self, val_dct, label_dct):
+        self.method_b_calls.append({'val_dct': val_dct,
+                                    'label_dct': label_dct})
+
+    def method_c(self, val_dct, label_dct):
+        self.method_c_calls.append({'val_dct': val_dct,
+                                    'label_dct': label_dct})
+
+    def method_d(self, val_dct, label_dct):
+        self.method_d_calls.append({'val_dct': val_dct,
+                                    'label_dct': label_dct})
+
+    def finish_method(self, method_name):
+        self.finish_method_names.append(method_name)
+
+    def finish_sequence(self, seq_name):
+        self.finish_sequence_names.append(seq_name)
+
+    def finish(self):
+        self.finish = True
+
+
+class Test_Automator(unittest.TestCase):
+    def test_run_seq_1(self):
+        flat = get_f()
+        fname = get_fname()
+        a = automate.Automator(flat, fname)
+        automated = Automated('set_1')
+        a.run('set_1', automated)
+        print(automated.method_a_calls)
 
 
 class Test_Aliases(unittest.TestCase):
@@ -216,12 +269,12 @@ class Test_Sequencer(unittest.TestCase):
                     {'vec_1': 3, 'vec_2': 'b'},
                     {'vec_1': 3, 'vec_2': 'c'}]}, 
             'method_a': {'val_list': [
-                    {'alias.two': 2, 'alias.three': 6, 'alias_4': 4},
-                    {'alias.two': 2, 'alias.three': 6, 'alias_4': 5},
-                    {'alias.two': 3, 'alias.three': 7, 'alias_4': 4},
-                    {'alias.two': 3, 'alias.three': 7, 'alias_4': 5},
-                    {'alias.two': 4, 'alias.three': 8, 'alias_4': 4},
-                    {'alias.two': 4, 'alias.three': 8, 'alias_4': 5}],
+                    {'alias.two': 2, 'alias.three': 6, 'alias.four': 4},
+                    {'alias.two': 2, 'alias.three': 6, 'alias.four': 5},
+                    {'alias.two': 3, 'alias.three': 7, 'alias.four': 4},
+                    {'alias.two': 3, 'alias.three': 7, 'alias.four': 5},
+                    {'alias.two': 4, 'alias.three': 8, 'alias.four': 4},
+                    {'alias.two': 4, 'alias.three': 8, 'alias.four': 5}],
                 'label_lst': [
                     {'vec_2': 'a', 'vec_3': 'four'},
                     {'vec_2': 'a', 'vec_3': 'five'},
@@ -238,14 +291,14 @@ class Test_Sequencer(unittest.TestCase):
         expected = {
             'method_c': {
                 'val_list': [
-                    {'alias.one': 0, 'alias_4': 4},
-                    {'alias.one': 0, 'alias_4': 5},
-                    {'alias.one': 2, 'alias_4': 4},
-                    {'alias.one': 2, 'alias_4': 5},
-                    {'alias.one': 3, 'alias_4': 4},
-                    {'alias.one': 3, 'alias_4': 5},
-                    {'alias.one': 4, 'alias_4': 4},
-                    {'alias.one': 4, 'alias_4': 5}],
+                    {'alias.one': 0, 'alias.four': 4},
+                    {'alias.one': 0, 'alias.four': 5},
+                    {'alias.one': 2, 'alias.four': 4},
+                    {'alias.one': 2, 'alias.four': 5},
+                    {'alias.one': 3, 'alias.four': 4},
+                    {'alias.one': 3, 'alias.four': 5},
+                    {'alias.one': 4, 'alias.four': 4},
+                    {'alias.one': 4, 'alias.four': 5}],
                 'label_lst': [
                     {'vec_1': 0, 'vec_3': 'four'},
                     {'vec_1': 0, 'vec_3': 'five'},
@@ -264,12 +317,12 @@ class Test_Sequencer(unittest.TestCase):
         expected = {
             'method_c': {
                 'val_list': [
-                    {'alias_4': 4, 'alias.one': 11, 'alias.two': 12},
-                    {'alias_4': 4, 'alias.one': 13, 'alias.two': 14},
-                    {'alias_4': 4, 'alias.one': 14, 'alias.two': 16},
-                    {'alias_4': 5, 'alias.one': 11, 'alias.two': 12},
-                    {'alias_4': 5, 'alias.one': 13, 'alias.two': 14},
-                    {'alias_4': 5, 'alias.one': 14, 'alias.two': 16}],
+                    {'alias.four': 4, 'alias.one': 11, 'alias.two': 12},
+                    {'alias.four': 4, 'alias.one': 13, 'alias.two': 14},
+                    {'alias.four': 4, 'alias.one': 14, 'alias.two': 16},
+                    {'alias.four': 5, 'alias.one': 11, 'alias.two': 12},
+                    {'alias.four': 5, 'alias.one': 13, 'alias.two': 14},
+                    {'alias.four': 5, 'alias.one': 14, 'alias.two': 16}],
                 'label_lst': [
                     {'vec_3': 'four', 'vec_4': 'a'},
                     {'vec_3': 'four', 'vec_4': 'b'},
