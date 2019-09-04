@@ -9,3 +9,4 @@ from . import settings
 from . import flat, view
 from . import container, box
 from . import automate
+from . import namespace
