@@ -8,6 +8,7 @@ Created on Mon Aug 26 22:12:43 2019
 import ruamel.yaml as yml
 
 
+
 class Automator():
     def __init__(self, flat, fname):
         self.flat = flat
@@ -15,8 +16,8 @@ class Automator():
             self.sets = yml.safe_load(f)
         
     def run(self, set_name, automated_cls):
-        set_data = self.sets[set_name]
-        s = Sequencer(set_data[set_name])
+        data = self.sets[set_name]
+        s = Sequencer(data['sequences'], data['aliases'], data['vectors'])
         obj = automated_cls(set_name=set_name)
         obj.prepare()
         for name in s.sequence_names:
@@ -51,21 +52,18 @@ class Aliases(dict):
     
     
 class Vector():
-    def __init__(self, data, name):
+    ''' Subclass for different entry formats '''
+    def __init__(self, name):
         self.name =  name
         self.i = 0
         self.child = None
-        self.setup(data)
         
-    def setup(self, data):
-        def default_labels(d):
-            for v in dct.values():
-                n = len(v)
-                return [i for i in range(n)]
-        dct = data.copy()
-        self.labels = dct.pop('labels', default_labels(dct))
-        self.data = dct
+    def initialise(self, data):
+        self.labels, self.data = self.setup(data)
         self.n = len(self.labels)
+    
+    def setup(self, data):
+        raise NotImplementedError
         
     def set_child(self, vector):
         self.child = vector
@@ -73,9 +71,8 @@ class Vector():
     def get_lst(self, lst=None, d=None):
         lst = [] if lst is None else lst
         d = {} if d is None else d
-        for i in range(self.n):
-            for k, vec in self.data.items():
-                d[k] = vec[i]
+        for dct in self.data:
+            d.update(dct)
             if self.child is not None:
                 self.child.get_lst(lst, d)
             else:
@@ -93,14 +90,55 @@ class Vector():
                 lst.append(d.copy())
         return lst
 
-        
+class List_Vector(Vector):
+    def transpose_dict(self, dct):
+        n = len(list(dct.values())[0])
+        out = [{} for i in range(n)]
+        for i in range(n):
+            for k, v in dct.items():
+                out[i][k] = v[i]
+        return out
+    
+    def setup(self, data):
+        def default_labels(d):
+            for v in dct.values():
+                n = len(v)
+                return [i for i in range(n)]
+        dct = data.copy()
+        labels = dct.pop('labels', default_labels(dct))
+        return labels, self.transpose_dict(dct)    
+
+class Dict_List_Vector(Vector):    
+    def setup(self, data):
+        labels = []
+        d = []
+        for k, dct in data.items():
+            labels.append(k)
+            d.append(dct)
+        return labels, d     
+    
+class Vector_Factory():
+    @classmethod
+    def new(cls, data, name):
+        if 'style' not in data:
+            v = List_Vector(name)
+            v.initialise(data)
+            return v
+        elif data['style'] == 'value_dictionaries':
+            v = Dict_List_Vector(name)
+        d = data.copy()
+        d.pop('style')
+        v.initialise(d)
+        return v
+            
+    
 class Vectors():
     def __init__(self, data):
         self.data = data
     
     def loop(self, v_names):
         root = None
-        vectors = {k: Vector(v, k) for k, v in self.data.items()}
+        vectors = {k: Vector_Factory.new(v, k) for k, v in self.data.items()}
         for v_name in v_names:
             if root is None:
                 root = vectors[v_name]
@@ -112,10 +150,10 @@ class Vectors():
         
         
 class Sequencer():
-    def __init__(self, data):
-        self.sequences = data['sequences']
-        self.aliases = Aliases(data['aliases'])
-        self.vectors = Vectors(data['vectors'])
+    def __init__(self, sequences, aliases, vectors):
+        self.sequences = sequences
+        self.aliases = Aliases(aliases)
+        self.vectors = Vectors(vectors)
         
     def sequence(self, name):
         seq_dct = {}
