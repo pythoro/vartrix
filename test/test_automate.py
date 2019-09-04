@@ -11,6 +11,8 @@ import unittest
 import ruamel.yaml as yml
 
 from vartrix.flat import Flat
+from vartrix.view import View
+from vartrix.namespace import Name_Space
 from vartrix import automate
 
 base = {'alias.one': 5,
@@ -18,10 +20,12 @@ base = {'alias.one': 5,
         'alias.three': 11,
         'alias.four': 17}
 
-def get_f():
-    f = Flat(base)
-    return f
+namespace = Name_Space(Flat)
+flat = namespace.get('test', base)
 
+def get_f():
+    f = namespace.get('test', base)
+    return f
 
 def get_fname():
     root = os.path.dirname(os.path.abspath(__file__))
@@ -37,6 +41,8 @@ def get_test_data():
 
 class Automated():
     def __init__(self, set_name):
+        dotkeys = ['alias']
+        self.params = View(namespace.get('test'), dotkeys)
         self.set_name = set_name
         self.prepare_sequence_names = []
         self.finish_sequence_names = []
@@ -46,6 +52,17 @@ class Automated():
         self.method_b_calls = []
         self.method_c_calls = []
         self.method_d_calls = []
+        def get_methods_dct():
+            return {'method_a': [], 'method_b': [], 'method_c': [], 'method_d': []}
+        def get_dct():
+            return {'seq_1': get_methods_dct(),
+                    'seq_2': get_methods_dct(),
+                    'seq_3': get_methods_dct(),
+                    'seq_4': get_methods_dct()}
+        self.alias_one_history = get_dct()
+        self.alias_two_history = get_dct()
+        self.alias_three_history = get_dct()
+        self.alias_four_history = get_dct()
         
     def prepare(self):
         self.prepare = True
@@ -56,21 +73,31 @@ class Automated():
     def prepare_method(self, method_name):
         self.prepare_method_names.append(method_name)
 
-    def method_a(self, val_dct, label_dct):
+    def append_history(self, seq_name, method_name):
+        self.alias_one_history[seq_name][method_name].append(self.params.one)
+        self.alias_two_history[seq_name][method_name].append(self.params.two)
+        self.alias_three_history[seq_name][method_name].append(self.params.three)
+        self.alias_four_history[seq_name][method_name].append(self.params.four)
+
+    def method_a(self, seq_name, val_dct, label_dct):
         self.method_a_calls.append({'val_dct': val_dct,
                                     'label_dct': label_dct})
+        self.append_history(seq_name, 'method_a')
 
-    def method_b(self, val_dct, label_dct):
+    def method_b(self, seq_name, val_dct, label_dct):
         self.method_b_calls.append({'val_dct': val_dct,
                                     'label_dct': label_dct})
+        self.append_history(seq_name, 'method_b')
 
-    def method_c(self, val_dct, label_dct):
+    def method_c(self, seq_name, val_dct, label_dct):
         self.method_c_calls.append({'val_dct': val_dct,
                                     'label_dct': label_dct})
-
-    def method_d(self, val_dct, label_dct):
+        self.append_history(seq_name, 'method_c')
+    
+    def method_d(self, seq_name, val_dct, label_dct):
         self.method_d_calls.append({'val_dct': val_dct,
                                     'label_dct': label_dct})
+        self.append_history(seq_name, 'method_d')
 
     def finish_method(self, method_name):
         self.finish_method_names.append(method_name)
@@ -89,7 +116,39 @@ class Test_Automator(unittest.TestCase):
         a = automate.Automator(flat, fname)
         automated = Automated('set_1')
         a.run('set_1', automated)
-        print(automated.method_a_calls)
+        
+        expected_one = {
+            'seq_1': {
+                'method_a': [0, 2, 3, 4],
+                'method_b': [],
+                'method_c': [],
+                'method_d': []},
+            'seq_2': {
+                'method_a': [5, 5, 5, 5, 5, 5],
+                'method_b': [0, 0, 0, 2, 2, 2, 3, 3, 3, 4, 4, 4],
+                'method_c': [],
+                'method_d': []},
+            'seq_3': {
+                'method_a': [],
+                'method_b': [],
+                'method_c': [0, 0, 2, 2, 3, 3, 4, 4],
+                'method_d': []},
+            'seq_4': {
+                'method_a': [],
+                'method_b': [],
+                'method_c': [11, 13, 14, 11, 13, 14],
+                'method_d': []}}
+        self.assertDictEqual(automated.alias_one_history, expected_one)
+
+        expected_two = {'seq_1': {'method_a': [7, 7, 7, 7], 'method_b': [], 'method_c': [], 'method_d': []}, 'seq_2': {'method_a': [2, 2, 3, 3, 4, 4], 'method_b': [2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3, 4], 'method_c': [], 'method_d': []}, 'seq_3': {'method_a': [], 'method_b': [], 'method_c': [7, 7, 7, 7, 7, 7, 7, 7], 'method_d': []}, 'seq_4': {'method_a': [], 'method_b': [], 'method_c': [12, 14, 16, 12, 14, 16], 'method_d': []}}
+        self.assertDictEqual(automated.alias_two_history, expected_two)
+
+        expected_three = {'seq_1': {'method_a': [11, 11, 11, 11], 'method_b': [], 'method_c': [], 'method_d': []}, 'seq_2': {'method_a': [6, 6, 7, 7, 8, 8], 'method_b': [6, 7, 8, 6, 7, 8, 6, 7, 8, 6, 7, 8], 'method_c': [], 'method_d': []}, 'seq_3': {'method_a': [], 'method_b': [], 'method_c': [11, 11, 11, 11, 11, 11, 11, 11], 'method_d': []}, 'seq_4': {'method_a': [], 'method_b': [], 'method_c': [11, 11, 11, 11, 11, 11], 'method_d': []}}
+        self.assertDictEqual(automated.alias_three_history, expected_three)
+
+        expected_four = {'seq_1': {'method_a': [17, 17, 17, 17], 'method_b': [], 'method_c': [], 'method_d': []}, 'seq_2': {'method_a': [4, 5, 4, 5, 4, 5], 'method_b': [17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17], 'method_c': [], 'method_d': []}, 'seq_3': {'method_a': [], 'method_b': [], 'method_c': [4, 5, 4, 5, 4, 5, 4, 5], 'method_d': []}, 'seq_4': {'method_a': [], 'method_b': [], 'method_c': [4, 4, 4, 5, 5, 5], 'method_d': []}}
+        self.assertDictEqual(automated.alias_four_history, expected_four)
+
 
 
 class Test_Aliases(unittest.TestCase):
