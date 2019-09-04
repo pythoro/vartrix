@@ -26,20 +26,20 @@ class Automator():
     def execute_sequence(self, seq_name, seq_dct, obj):
         obj.prepare_sequence(seq_name)
         for method_name, dct in seq_dct.items():
-            self.execute_method(method_name,
+            self.execute_method(method_name, seq_name,
                                 dct['val_list'],
                                 dct['label_lst'],
                                 obj)
         obj.finish_sequence(seq_name)
 
-    def execute_method(self, method_name, val_list, label_lst, obj):
+    def execute_method(self, method_name, seq_name, val_list, label_lst, obj):
         flat = self.flat
         obj.prepare_method(method_name)
         method = getattr(obj, method_name)
         with flat.context(val_list[0]):
             for val_dct, label_dct in zip(val_list, label_lst):
                 flat.dset(val_dct)
-                method(val_dct, label_dct)
+                method(seq_name, val_dct, label_dct)
         obj.finish_method(method_name)
         
     
