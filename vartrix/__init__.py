@@ -10,3 +10,7 @@ from . import flat, view
 from . import container, box
 from . import automate
 from . import namespace
+
+from .namespace import Name_Space
+from .flat import Flat as Container
+from .view import View
