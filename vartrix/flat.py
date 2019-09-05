@@ -98,9 +98,22 @@ class Flat(dict):
             self._nest(key_list, val, dct)
         return dct
     
+    
+    def flat(self, dct, parents=None, current=None):
+        ''' Create a flat dictionary (recursively) '''
+        current = {} if current is None else current
+        parents = [] if parents is None else parents
+        for key, obj in dct.items():
+            full_key = parents + [str(key)]
+            if isinstance(obj, dict):
+                self.flat(obj, parents=full_key, current=current)
+            else:
+                current['.'.join(full_key)] = obj
+        return current
+    
     def load(self, dct):
         self.clear()
-        self.update(dct)
+        self.update(self.flat(dct))
         for dotkey, observers in self._observers.items():
             for observer in observers:
                 observer.refresh(dotkey)
