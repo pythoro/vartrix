@@ -7,17 +7,31 @@ Created on Tue Aug 27 20:59:39 2019
 
 import uuid
 
+def get_bases(obj):
+    def dotkey(c):
+        long_name = c.__module__ + '.' + c.__name__
+        split = long_name.split('.')
+        return '.'.join(split[1:])
+        
+    bases = [dotkey(obj.__class__)]
+    for base_class in obj.__class__.__bases__:
+        bases.append(dotkey(base_class))
+    return bases
+
+
 class View(dict):
     ''' Provides a virtual view of a Flat dictionary 
     
     Caches dict values and updates them when set for performance
     '''
-    def __init__(self, flat, dotkeys=None, keep_live=True):
+    def __init__(self, flat, dotkeys=None, keep_live=True, obj=None):
         self.__hash = hash(uuid.uuid4())
         self._flat = flat
         self.dotkeys = []
         self.keep_live = keep_live
         dotkeys = ['__ROOT__'] if dotkeys is None else dotkeys
+        dotkeys = [dotkeys] if isinstance(dotkeys, str) else dotkeys
+        dotkeys = get_bases(obj) if obj is not None else dotkeys
         for dotkey in dotkeys:
             self._add_dotkey(dotkey)
         
