@@ -76,6 +76,8 @@ class View(dict):
             setattr(self, k, v)
         
     def refresh(self):
+        if not self._live:
+            return
         old_keys = self.keys()
         self.clear()
         for dotkey in self.dotkeys:
