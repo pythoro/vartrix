@@ -20,7 +20,7 @@ def set_root(new):
 class Automator():
     def __init__(self, container, fname):
         self.container = container
-        self.sets = persist.automation_load(fname)
+        self.sets = persist.load(fname)
         
     def run(self, set_name, obj):
         data = self.sets[set_name]
