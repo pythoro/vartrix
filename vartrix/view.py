@@ -13,15 +13,10 @@ def get_bases(obj):
         long_name = c.__module__ + '.' + c.__name__
         split = long_name.split('.')
         return '.'.join(split[1:])
-    
-    def safe_add(bases, base):
-        if base not in ['object']:
-            bases.append(base)
         
-    bases = []
-    safe_add(bases, dotkey(obj.__class__))
+    bases = [dotkey(obj.__class__)]
     for base_class in obj.__class__.__bases__:
-        safe_add(bases, dotkey(base_class))
+        bases.append(dotkey(base_class))
     return bases
 
 
@@ -35,6 +30,7 @@ class View(dict):
         self._container = container
         self.dotkeys = []
         self._live = live
+        self.dirty = False
         dotkeys = ['__ROOT__'] if dotkeys is None else dotkeys
         dotkeys = [dotkeys] if isinstance(dotkeys, str) else dotkeys
         dotkeys = get_bases(obj) if obj is not None else dotkeys
@@ -50,7 +46,7 @@ class View(dict):
         assert type(flag) is bool
         self._live = flag
         if self._live:
-            self.refresh_all()
+            self.refresh()
         
     def __hash__(self):
         return self.__hash
@@ -79,18 +75,20 @@ class View(dict):
         for k, v in dct.items():
             setattr(self, k, v)
         
-    def refresh(self, dotkey):
+    def refresh(self):
         old_keys = self.keys()
         self.clear()
-        self._update(dotkey)
+        for dotkey in self.dotkeys:
+            self._update(dotkey)
         new_keys = self.keys()
         for old_key in old_keys:
             if old_key not in new_keys:
                 delattr(self, old_key)
-    
-    def refresh_all(self):
-        for dotkey in self.dotkeys:
-            self.refresh(dotkey)
+        self.dirty = False
+
+    def check_refresh(self):
+        if self.dirty:
+            self.refresh()
         
     def get(self, key):
         return self[key]

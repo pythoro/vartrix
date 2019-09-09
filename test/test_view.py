@@ -62,31 +62,22 @@ class Test_View(unittest.TestCase):
         dotkeys = ['a']
         v = View(c, dotkeys)
         v.clear()
-        v.refresh('a')
+        v.refresh()
+        v.refresh()
         res = v['b']
         expected = 5
         self.assertEqual(res, expected)
-                
+               
     def test_refresh_attr(self):
         c = get_c()
         dotkeys = ['a']
         v = View(c, dotkeys)
         del v.b
-        v.refresh('a')
+        v.refresh()
         res = v.b
         expected = 5
         self.assertEqual(res, expected)   
-        
-    def test_refresh_all(self):
-        c = get_c()
-        dotkeys = ['a']
-        v = View(c, dotkeys)
-        v.clear()
-        v.refresh_all()
-        res = v['b']
-        expected = 5
-        self.assertEqual(res, expected)
-        
+                
     def test_set(self):
         c = get_c()
         dotkeys = ['a']

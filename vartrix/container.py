@@ -116,7 +116,10 @@ class Container(dict):
         self.update(self.container(dct))
         for dotkey, observers in self._observers.items():
             for observer in observers:
-                observer.refresh(dotkey)
+                observer.dirty = True
+        for dotkey, observers in self._observers.items():
+            for observer in observers:
+                observer.check_refresh()
                 
     @classmethod
     def combine(cls, dct):

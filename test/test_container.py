@@ -21,8 +21,13 @@ class View_Mock():
         self.key = key
         self.val = val
         
-    def refresh(self, dotkey):
-        self.refresh = dotkey
+    def refresh(self):
+        self.refresh_val = True
+
+    def check_refresh(self):
+        if self.dirty:
+            self.refresh()
+        
 
 class Test_Container(unittest.TestCase):
     def test_instantiate(self):
@@ -111,7 +116,7 @@ class Test_Container(unittest.TestCase):
         dct2 = {'a.b': 7,
                 'a.e': 45}
         c.load(dct2)
-        self.assertEqual(b.refresh, 'a')
+        self.assertEqual(b.refresh_val, True)
 
     def test_combine(self):
         d1 = {'b': 5}
