@@ -58,7 +58,7 @@ ns['tutorial_1'].load(dct)
 ```
 
 
-## Views
+### Views
 For large containers with multiple levels, it's much easier to deal with a View of a specific set of the dotkeys. Views allow the values for those dotkeys to be accessed without the preceeding levels of the key. For example:
 
 ```python
@@ -86,7 +86,7 @@ print(b.params)
 # {'fig': 13, 'pear': 17, 'orange': 19}
 ```
 
-You can pass in the object instead. It will automatically remove the package name or '__main__' prefix on the class names. It automatically includes base classes so inheritance works.
+You can pass in the object instead. It will automatically remove the package name or `__main__` prefix on the class names. It automatically includes base classes so inheritance works.
 
 ```python
 class A():
@@ -109,7 +109,7 @@ print(c.params)
 ```
 	
 	
-## Remote updates
+### Remote updates
 The views are automatically updated with changes from their associated container. Let's first make a view and get a reference to the container:
 
 ```python
@@ -133,14 +133,14 @@ print(container['A.apple'])
 # 102
 ```python
 
-Use the lset method for dotkets as lists of strings:
+Use the `lset` method for dotkets as lists of strings:
 ```python
 container.lset(['A', 'apple'], 103)
 print(container['A.apple'])
 # 103
 ```
 
-And use the dset method to set a range of values using a dictionary of dotkeys:
+And use the `dset` method to set a range of values using a dictionary of dotkeys:
 ```python
 {'A.apple': 103, 'A.banana': 7, 'A.grape': 11, 'B.fig': 13, 'B.pear': 17, 'B.orange': 19}
 container.dset({'A.apple': 104, 'A.grape': 201})
@@ -148,7 +148,7 @@ print(container)
 {'A.apple': 104, 'A.banana': 7, 'A.grape': 201, 'B.fig': 13, 'B.pear': 17, 'B.orange': 19}
 ```
 
-## Preventing updating
+### Preventing updating
 If you don't want a view to update, set the `live` attribute to False, like this:
 ```python
 a.params.live = False
@@ -193,7 +193,7 @@ print(container)
 ```
 
 
-## View updates
+### View updates
 Sometimes, it's more convenient to set values on a view. This works in a similar way. Values set on a live view are reflected in the container, and all other linked views.
 
 Use a setitem style:
@@ -214,7 +214,7 @@ print(a.params['apple'])
 # 1002
 ```
 
-Or the dset method for multiple key-value pairs:
+Or the `dset` method for multiple key-value pairs:
 ```python
 a.params.dset({'apple': 1003, 'grape': 2002})
 print(container)
