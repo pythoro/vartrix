@@ -7,21 +7,22 @@ Created on Wed Jul 19 15:02:12 2019
 
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setuptools.setup(
     name="vartrix",
     version="0.0.1",
     author="Reuben Rusk",
-    author_email="pythoro@mindquip.com",
     description="Easily manange and automate variables and parameters.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pythoro/vartrix.git",
     download_url="https://github.com/pythoro/vartrix/archive/v0.0.1.zip",
     packages=['vartrix'],
-    keywords=['PARAMETERS', 'VARIABLES', 'MANAGE', 'PARAMETRIC', 'AUTOMATION', 'AUTOMATE'],
+    keywords=['PARAMETERS', 'VARIABLES', 'PARAMETRIC', 'AUTOMATION', 'AUTOMATE'],
     classifiers=[
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
