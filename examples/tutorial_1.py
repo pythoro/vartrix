@@ -20,6 +20,13 @@ def get_container_from_flat():
     container = vartrix.Container(dct)
     return container
 
+def get_container_from_yaml():
+    import os
+    path = os.path.dirname(__file__)
+    dct = vartrix.load(os.path.join(path, 'tutorial_1.yml'))
+    container = vartrix.Container(dct)
+    return container
+
 ns = vartrix.Name_Space()
 ns['tutorial_1'] = get_container_from_nested()
 
@@ -81,6 +88,28 @@ def demo_A_remote_update():
     print(container)
     print(a.params)
     
+    a.params.keep_live = False
+
+    container.dset({'A.apple': 111, 'A.grape': 222})
+    print('---')
+    print(container)
+    print(a.params)    
+    
+def demo_container_load():
+    container = ns['tutorial_1']
+    backup = container.copy()
+    a = A()
+    print(container)
+    print(a.params)
+    dct = {'A.apple': 77, 'A.banana': 87, 'A.grape': 91, 'A.pineapple': 55,
+           'B.fig': 102, 'B.pear': 150, 'B.orange': 300}
+    container.load(dct)
+    print(container)
+    print(a.params)
+    container.load(backup)
+    print(container)
+    print(a.params)
+    
 
 def demo_A_local_update():
     a = A()
@@ -105,3 +134,11 @@ def demo_A_local_update():
     print(container)
     print(a.params)
     
+    
+def demo_A_remote_context():
+    a = A()
+    container = ns['tutorial_1']
+
+    print('---')
+    print(container)
+    print(a.params)
