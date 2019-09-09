@@ -27,6 +27,9 @@ def get_c():
     f = namespace.get('test', base)
     return f
 
+def set_csv_root():
+    automate.set_root(os.path.dirname(os.path.abspath(__file__)))
+
 def get_fname():
     root = os.path.dirname(os.path.abspath(__file__))
     fname = os.path.join(root, 'automation_sets.yml')
@@ -34,6 +37,7 @@ def get_fname():
 
 def get_test_data():
     fname = get_fname()
+    set_csv_root()
     with open(fname) as f:
         sets = yml.safe_load(f)
     return sets
@@ -113,6 +117,7 @@ class Test_Automator(unittest.TestCase):
     def test_run_seq_1(self):
         container = get_c()
         fname = get_fname()
+        set_csv_root()
         a = automate.Automator(container, fname)
         automated = Automated('set_1')
         a.run('set_1', automated)
@@ -232,6 +237,19 @@ class Test_Vector(unittest.TestCase):
                     {'vec_1': 'b', 'vec_2': 'c'},
                     {'vec_1': 'b', 'vec_2': 'd'}]
         self.assertListEqual(lst, expected)
+
+    def test_csv(self):
+        automate.root = os.path.dirname(os.path.abspath(__file__))
+        dct = {'style': 'csv', 'filename': 'test_data.csv'}
+        v = automate.Vector_Factory.new(dct, 'csv_vec')
+        lst = v.get_lst()
+        expected = [{'alias_1': 2, 'alias_2': 3},
+                    {'alias_1': 5, 'alias_2': 7}]
+        self.assertListEqual(lst, expected)
+        expected = [{'csv_vec': 'row_one'},
+                    {'csv_vec': 'row_two'}]
+        lst = v.get_label_lst()
+        
 
 
 class Test_List_Vector(unittest.TestCase):

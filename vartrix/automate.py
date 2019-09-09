@@ -5,9 +5,17 @@ Created on Mon Aug 26 22:12:43 2019
 @author: Reuben
 """
 
+import os
 import ruamel.yaml as yml
 import pandas as pd
 
+
+root = os.path.dirname(os.path.abspath(__file__))
+
+def set_root(new):
+    global root
+    root = new
+    
 
 class Automator():
     def __init__(self, container, fname):
@@ -124,9 +132,10 @@ class Dict_List_Vector(Vector):
 class Csv_File(Vector):
     def setup(self, data):
         d = []
-        df = pd.read_csv(data['filename'])
+        full_filename = os.path.join(root, data['filename'])
+        df = pd.read_csv(full_filename, index_col=0)
         labels = list(df.index)
-        for row in data.iterrows():
+        for index, row in df.iterrows():
             d.append(row.to_dict())
         return labels, d
 
@@ -140,7 +149,7 @@ class Vector_Factory():
             return v
         elif data['style'] == 'value_dictionaries':
             v = Dict_List_Vector(name)
-        elif data['style'] == 'csv_file':
+        elif data['style'] == 'csv':
             v = Csv_File(name)
         d = data.copy()
         d.pop('style')
