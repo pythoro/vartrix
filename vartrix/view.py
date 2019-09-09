@@ -13,10 +13,15 @@ def get_bases(obj):
         long_name = c.__module__ + '.' + c.__name__
         split = long_name.split('.')
         return '.'.join(split[1:])
+    
+    def safe_add(bases, base):
+        if base not in ['object']:
+            bases.append(base)
         
-    bases = [dotkey(obj.__class__)]
+    bases = []
+    safe_add(bases, dotkey(obj.__class__))
     for base_class in obj.__class__.__bases__:
-        bases.append(dotkey(base_class))
+        safe_add(bases, dotkey(base_class))
     return bases
 
 
