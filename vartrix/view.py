@@ -97,3 +97,6 @@ class View(dict):
             super().__setitem__(key, val)
             setattr(self, key, val)
     
+    def dset(self, dct):
+        for k, v in dct.items():
+            self.set(k, v)
