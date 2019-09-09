@@ -5,10 +5,10 @@ Created on Thu Sep  5 11:14:59 2019
 @author: Reuben
 """
 
-from .flat import Flat
+from .container import Container
 
 class Name_Space(dict):
-    def __init__(self, obj_cls=Flat):
+    def __init__(self, obj_cls=Container):
         self.obj_cls = obj_cls
     
     def __missing__(self, key):

@@ -19,7 +19,7 @@ def safe_root(dotkey):
         return dotkey
     
 
-class Flat(dict):
+class Container(dict):
     ''' An dictionary with observers '''
 
     def __init__(self, dct=None, name=None):
@@ -50,7 +50,7 @@ class Flat(dict):
         self.set('.'.join(key_list), val)
 
     def dset(self, dct, safe=False):
-        ''' Pull in values from a flat dct '''
+        ''' Pull in values from a container dct '''
         for dotkey, val in dct.items():
             self.set(dotkey, val, safe=safe)
 
@@ -99,21 +99,21 @@ class Flat(dict):
         return dct
     
     
-    def flat(self, dct, parents=None, current=None):
-        ''' Create a flat dictionary (recursively) '''
+    def container(self, dct, parents=None, current=None):
+        ''' Create a container dictionary (recursively) '''
         current = {} if current is None else current
         parents = [] if parents is None else parents
         for key, obj in dct.items():
             full_key = parents + [str(key)]
             if isinstance(obj, dict):
-                self.flat(obj, parents=full_key, current=current)
+                self.container(obj, parents=full_key, current=current)
             else:
                 current['.'.join(full_key)] = obj
         return current
     
     def load(self, dct):
         self.clear()
-        self.update(self.flat(dct))
+        self.update(self.container(dct))
         for dotkey, observers in self._observers.items():
             for observer in observers:
                 observer.refresh(dotkey)
@@ -122,19 +122,19 @@ class Flat(dict):
     def combine(cls, dct):
         ''' Combine a dictionary of containers '''
         c = cls()
-        for key, flat in dct.items():
-            for k, v in flat.items():
+        for key, container in dct.items():
+            for k, v in container.items():
                 dotkey = key + '.' + k
                 c[dotkey] = v
         return c
     
     @classmethod
-    def merge(cls, flats):
+    def merge(cls, containers):
         ''' Combine a dictionary of containers '''
         c = cls()
-        for flat in flats:
-            c.update(flat)
-            for dotkey, observers in flat._observers.items():
+        for container in containers:
+            c.update(container)
+            for dotkey, observers in container._observers.items():
                 c._observers[dotkey] |= observers # set union, in place
         return c
     

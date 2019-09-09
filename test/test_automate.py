@@ -10,7 +10,7 @@ import unittest
 
 import ruamel.yaml as yml
 
-from vartrix.flat import Flat
+from vartrix.container import Container
 from vartrix.view import View
 from vartrix.namespace import Name_Space
 from vartrix import automate
@@ -20,10 +20,10 @@ base = {'alias.one': 5,
         'alias.three': 11,
         'alias.four': 17}
 
-namespace = Name_Space(Flat)
-flat = namespace.get('test', base)
+namespace = Name_Space(Container)
+container = namespace.get('test', base)
 
-def get_f():
+def get_c():
     f = namespace.get('test', base)
     return f
 
@@ -111,9 +111,9 @@ class Automated():
 
 class Test_Automator(unittest.TestCase):
     def test_run_seq_1(self):
-        flat = get_f()
+        container = get_c()
         fname = get_fname()
-        a = automate.Automator(flat, fname)
+        a = automate.Automator(container, fname)
         automated = Automated('set_1')
         a.run('set_1', automated)
         

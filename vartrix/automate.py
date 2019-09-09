@@ -10,8 +10,8 @@ import ruamel.yaml as yml
 
 
 class Automator():
-    def __init__(self, flat, fname):
-        self.flat = flat
+    def __init__(self, container, fname):
+        self.container = container
         with open(fname) as f:
             self.sets = yml.safe_load(f)
         
@@ -33,12 +33,12 @@ class Automator():
         obj.finish_sequence(seq_name)
 
     def execute_method(self, method_name, seq_name, val_list, label_lst, obj):
-        flat = self.flat
+        container = self.container
         obj.prepare_method(method_name)
         method = getattr(obj, method_name)
-        with flat.context(val_list[0]):
+        with container.context(val_list[0]):
             for val_dct, label_dct in zip(val_list, label_lst):
-                flat.dset(val_dct)
+                container.dset(val_dct)
                 method(seq_name, val_dct, label_dct)
         obj.finish_method(method_name)
         

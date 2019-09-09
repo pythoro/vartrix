@@ -24,9 +24,9 @@ class View(dict):
     
     Caches dict values and updates them when set for performance
     '''
-    def __init__(self, flat, dotkeys=None, keep_live=True, obj=None):
+    def __init__(self, container, dotkeys=None, keep_live=True, obj=None):
         self.__hash = hash(uuid.uuid4())
-        self._flat = flat
+        self._container = container
         self.dotkeys = []
         self.keep_live = keep_live
         dotkeys = ['__ROOT__'] if dotkeys is None else dotkeys
@@ -49,12 +49,12 @@ class View(dict):
                        + 'one of: "' + '"; "'.join(self.dotkeys) + '"')
         
     def _hook_to_flat(self, dotkey):
-        self._flat.register_observer(dotkey, self)
+        self._container.register_observer(dotkey, self)
         self._update(dotkey)
         self.dotkeys.append(dotkey)
         
     def _update(self, dotkey):
-        dct = self._flat.get_dct(dotkey)
+        dct = self._container.get_dct(dotkey)
         for key in dct.keys():
             if key in self:
                 self._clash_error(key, dotkey)
@@ -81,11 +81,11 @@ class View(dict):
     def set(self, key, val):
         if not self.keep_live:
             super().__setitem__(key, val)
-        flat = self._flat
+        container = self._container
         for dotkey in self.dotkeys:
             k = dotkey + '.' + key
-            if k in flat:
-                flat.set(k, val)
+            if k in container:
+                container.set(k, val)
                 return
         raise KeyError(key + ' not found in dotkeys: ' + '; '.join(self.dotkeys))
         
