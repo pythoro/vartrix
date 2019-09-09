@@ -10,6 +10,6 @@ from . import container, view
 from . import automate
 from . import namespace
 
-from .namespace import Name_Space
+from .namespace import Name_Space, get_container
 from .container import Container
 from .view import View

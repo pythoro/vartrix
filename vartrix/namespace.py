@@ -9,6 +9,7 @@ from .container import Container
 
 class Name_Space(dict):
     def __init__(self, obj_cls=Container):
+        self.i = 0
         self.obj_cls = obj_cls
     
     def __missing__(self, key):
@@ -19,7 +20,15 @@ class Name_Space(dict):
         self[key] = new
         return new
     
-    def get(self, key, dct=None):
+    def get(self, key=None, dct=None):
+        if key is None:
+            key = self.i
+            self.i += 1
         if key not in self:
             return self.create(key, dct)
         return self[key]
+
+default = Name_Space()
+
+def get_container(name=None):
+    return default.get(name)
