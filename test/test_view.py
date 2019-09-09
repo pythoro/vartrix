@@ -151,3 +151,12 @@ class Test_View(unittest.TestCase):
         res3 = v['b']
         expected3 = 5
         self.assertEqual(res3, expected3)
+        
+    def test_context(self):
+        c = get_c()
+        dotkeys = ['a']
+        v = View(c, dotkeys)
+        with v.context({'b': 77}):
+            self.assertEqual(v['b'], 77)
+        self.assertEqual(v['b'], 5)
+        
