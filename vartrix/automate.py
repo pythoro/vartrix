@@ -6,7 +6,7 @@ Created on Mon Aug 26 22:12:43 2019
 """
 
 import ruamel.yaml as yml
-
+import pandas as pd
 
 
 class Automator():
@@ -112,14 +112,24 @@ class List_Vector(Vector):
         labels = dct.pop('labels', default_labels(dct))
         return labels, self.transpose_dict(dct)    
 
-class Dict_List_Vector(Vector):    
+class Dict_List_Vector(Vector):
     def setup(self, data):
         labels = []
         d = []
         for k, dct in data.items():
             labels.append(k)
             d.append(dct)
-        return labels, d     
+        return labels, d
+
+class Csv_File(Vector):
+    def setup(self, data):
+        d = []
+        df = pd.read_csv(data['filename'])
+        labels = list(df.index)
+        for row in data.iterrows():
+            d.append(row.to_dict())
+        return labels, d
+
     
 class Vector_Factory():
     @classmethod
@@ -130,6 +140,8 @@ class Vector_Factory():
             return v
         elif data['style'] == 'value_dictionaries':
             v = Dict_List_Vector(name)
+        elif data['style'] == 'csv_file':
+            v = Csv_File(name)
         d = data.copy()
         d.pop('style')
         v.initialise(d)
