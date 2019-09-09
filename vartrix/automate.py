@@ -6,9 +6,9 @@ Created on Mon Aug 26 22:12:43 2019
 """
 
 import os
-import ruamel.yaml as yml
 import pandas as pd
 
+from . import persist
 
 root = os.path.dirname(os.path.abspath(__file__))
 
@@ -20,8 +20,7 @@ def set_root(new):
 class Automator():
     def __init__(self, container, fname):
         self.container = container
-        with open(fname) as f:
-            self.sets = yml.safe_load(f)
+        self.sets = persist.automation_load(fname)
         
     def run(self, set_name, obj):
         data = self.sets[set_name]
