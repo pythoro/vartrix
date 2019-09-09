@@ -6,7 +6,6 @@ Created on Thu Sep  5 11:14:59 2019
 """
 
 from .flat import Flat
-from .container import Container
 
 class Name_Space(dict):
     def __init__(self, obj_cls=Flat):
