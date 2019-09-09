@@ -117,3 +117,37 @@ class Test_View(unittest.TestCase):
         res = v['new']
         expected = 99
         self.assertEqual(res, expected)
+
+    def test_live_remote(self):
+        c = get_c()
+        dotkeys = ['a']
+        v = View(c, dotkeys)
+        v.live = False
+        c['a.b'] = 99
+        res = v['b']
+        expected = 5
+        self.assertEqual(res, expected)
+        res2 = c['a.b']
+        expected2 = 99
+        self.assertEqual(res2, expected2)
+        v.live = True
+        res3 = v['b']
+        expected3 = 99
+        self.assertEqual(res3, expected3)
+        
+    def test_live_local(self):
+        c = get_c()
+        dotkeys = ['a']
+        v = View(c, dotkeys)
+        v.live = False
+        v['b'] = 99
+        res = c['a.b']
+        expected = 5
+        self.assertEqual(res, expected)
+        res2 = v['b']
+        expected2 = 99
+        self.assertEqual(res2, expected2)
+        v.live = True
+        res3 = v['b']
+        expected3 = 5
+        self.assertEqual(res3, expected3)

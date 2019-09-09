@@ -6,6 +6,7 @@ Created on Tue Aug 27 20:59:39 2019
 """
 
 import uuid
+from contextlib import contextmanager
 
 def get_bases(obj):
     def dotkey(c):
@@ -24,16 +25,27 @@ class View(dict):
     
     Caches dict values and updates them when set for performance
     '''
-    def __init__(self, container, dotkeys=None, keep_live=True, obj=None):
+    def __init__(self, container, dotkeys=None, live=True, obj=None):
         self.__hash = hash(uuid.uuid4())
         self._container = container
         self.dotkeys = []
-        self.keep_live = keep_live
+        self._live = live
         dotkeys = ['__ROOT__'] if dotkeys is None else dotkeys
         dotkeys = [dotkeys] if isinstance(dotkeys, str) else dotkeys
         dotkeys = get_bases(obj) if obj is not None else dotkeys
         for dotkey in dotkeys:
             self._add_dotkey(dotkey)
+    
+    @property
+    def live(self):
+        return self._live
+    
+    @live.setter
+    def live(self, flag):
+        assert type(flag) is bool
+        self._live = flag
+        if self._live:
+            self.refresh_all()
         
     def __hash__(self):
         return self.__hash
@@ -79,8 +91,9 @@ class View(dict):
         return self[key]
         
     def set(self, key, val):
-        if not self.keep_live:
+        if not self._live:
             super().__setitem__(key, val)
+            return
         container = self._container
         for dotkey in self.dotkeys:
             k = dotkey + '.' + key
@@ -93,10 +106,17 @@ class View(dict):
         return self.set(key, val)
     
     def _view_update(self, key, val):
-        if self.keep_live:
+        if self._live:
             super().__setitem__(key, val)
             setattr(self, key, val)
     
     def dset(self, dct):
         for k, v in dct.items():
             self.set(k, v)
+            
+    @contextmanager
+    def context(self, dct):
+        originals = {k: self[k] for k in dct.keys()}
+        self.dset(dct)
+        yield self
+        self.dset(originals)
