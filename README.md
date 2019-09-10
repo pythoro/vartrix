@@ -1,6 +1,17 @@
 # vartrix
 
-Vartrix is about managing and automating parameters used in code.
+Vartrix is about managing and automating parameters used in code. The name 'vartrix' is short for 'variable tricks'.
+
+You might like vartrix if:
+
+* You're worried about the growing complexity of all the parameters in your code and you'd like to use a robust, scalable approach from the start.
+* Tracking all the parameters in your code has become difficult.
+* You need parameters to be traceable so you are confident that the right ones are used
+* You need to change parameters in a simple, robust and traceable way to ensure you haven't got an undetected coding error.
+* You need to be able to snapshot parameters and store them.
+* You've created ugly, fragile code to step through sets of parameters and run bits of code for each set.
+* You pass around a lot of parameters between classes in your code, making it bloated, difficult to maintain, and fragile
+
 
 ## Quickstart tutorial - basic usage
 
