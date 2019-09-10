@@ -147,18 +147,27 @@ class Csv_File(Vector):
 
     
 class Vector_Factory():
+    styles = {'value_lists': List_Vector,
+              'value_dictionaries': Dict_List_Vector,
+              'csv': Csv_File}
+    default_style = 'value_lists'
+
+    @classmethod
+    def set_style(cls, style_name, vec_cls):
+        cls.styles[style_name] = vec_cls
+    
     @classmethod
     def new(cls, data, name):
-        if 'style' not in data or data['style'] == 'value_lists':
-            v = List_Vector(name)
-            v.initialise(data)
-            return v
-        elif data['style'] == 'value_dictionaries':
-            v = Dict_List_Vector(name)
-        elif data['style'] == 'csv':
-            v = Csv_File(name)
+        if 'style' not in data:
+            vec_cls = cls.styles[cls.default_style]
+        else:
+            vec_cls = cls.styles[data['style']]
+        v = vec_cls(name)
         d = data.copy()
-        d.pop('style')
+        try:
+            d.pop('style')
+        except KeyError:
+            pass
         v.initialise(d)
         return v
             

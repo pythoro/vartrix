@@ -6,8 +6,6 @@ Created on Mon Sep  9 15:32:52 2019
 """
 
 import vartrix
-import os
-
 
 ns = vartrix.Name_Space()
 
@@ -54,6 +52,7 @@ def run():
     # Automated class is done
 
     # See tutorial_2.yml
+    import os
     root = os.path.dirname(__file__)
     fname = os.path.join(root, 'tutorial_2.yml')
     automator = vartrix.Automator(ns['tutorial_2'], fname)
