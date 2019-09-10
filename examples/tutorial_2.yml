@@ -1,0 +1,15 @@
+set_1:
+    aliases:
+        alias_1: A.apple
+        alias_2: B.orange
+        alias_3: B.fig
+    vectors:
+        vec_1:
+            alias_1: [5, 10, 15]
+        vec_2:
+            labels:  ['a', 'b', 'c']
+            alias_2: [  2,   3,   4]
+            alias_3: [  6,   7,   8]
+    sequences:
+        seq_1:
+            method_a: [vec_1, vec_2]
