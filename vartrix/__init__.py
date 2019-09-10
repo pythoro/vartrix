@@ -16,4 +16,5 @@ from .persist import load, save
 from .namespace import Name_Space, get_container
 from .container import Container
 from .view import View
+from .automate import Automator
 
