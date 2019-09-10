@@ -286,9 +286,9 @@ There are some key things about the structure:
 
 * The highest level is for each set. Only one set is run at a time. Each `set` is labeled by its its key. In this case, we have one set called `set_1`.
 * Each set needs three keys:
-    * aliases: A dictionary where keys are aliases - shorter names for possibly long entries in the container - and the values are the corresponding container keys. The values need to exist as keys in the container.
-	* vectors: Dictionary where each key-value pair specifies a series of values. The aliases must exist in the `aliases` dictionary. There are multiple formats, as described below.
-	* sequences: A dictionary where each key is the name of a sequence. Inside each sequence, there are keys that correspond to method names in the class that we're going to use for the automation. The values are lists of vector names that must exist in the `vectors` dictionary. The way they work is described below.
+    * **aliases:** A dictionary where keys are aliases - shorter names for possibly long entries in the container - and the values are the corresponding container keys. The values need to exist as keys in the container.
+	* **vectors:** Dictionary where each key-value pair specifies a series of values. The aliases must exist in the `aliases` dictionary. There are multiple formats, as described below.
+	* **sequences:** A dictionary where each key is the name of a sequence. Inside each sequence, there are keys that correspond to method names in the class that we're going to use for the automation. The values are lists of vector names that must exist in the `vectors` dictionary. The way they work is described below.
 	
 #### How sequences work
 Inside each sequence is a list of methods (the keys) and their corresponding list of vector names. The automator takes the list of vector names and interates over their values in a nested fashion. For example, `[vec_1, vec_2]` means the outer loop iterates over the set of values in `vec_1`, while the inner loop iterates over the values in `vec_2`. There is no limit to how many vectors you use, but since the total number of steps in the overall sequence grows exponentially, don't use too many.
@@ -296,35 +296,35 @@ Inside each sequence is a list of methods (the keys) and their corresponding lis
 #### Vectors
 Vectors specify what values to iterate over for one or more aliases. There are many ways to specify them, as described below.
 
-*Simple vector.* Labels of [0, 1, 2] will be automatically created. The `style` key-value pair is optional for this style.
+**Simple vector.** Labels of [0, 1, 2] will be automatically created. The `style` key-value pair is optional for this style.
 ```yaml
         vec_1:
-			style: value_lists
+            style: value_lists
             alias_1: [5, 10, 15]
 ```
 
-*Value lists.* Here, we'll specify the labels in a separate vector. On the first iteration, the first values of each vector will be used. The second iteration will use the second values, and so on. The `style` key-value pair is optional for this style.
+**Value lists.** Here, we'll specify the labels in a separate vector. On the first iteration, the first values of each vector will be used. The second iteration will use the second values, and so on. The `style` key-value pair is optional for this style.
 ```yaml
         vec_2:
-			style: value_lists
+            style: value_lists
             labels:  ['a', 'b', 'c']
             alias_2: [  2,   3,   4]
             alias_3: [  6,   7,   8]
 ```
 
-*Value dictionaries.* We could achieve the same `vec_2` as above using the format below:
+**Value dictionaries.** We could achieve the same `vec_2` as above using the format below:
 ```yaml
         vec_2:
-			style: value_dictionaries
+            style: value_dictionaries
             a:  {alias_2: 2, alias_3: 6},
-			b:  {alias_2: 3, alias_3: 7},
-			c:  {alias_2: 4, alias_3: 8},
+            b:  {alias_2: 3, alias_3: 7},
+            c:  {alias_2: 4, alias_3: 8},
 ```
 
-*Csv file.* We could achieve the same `vec_2` as above using a csv file combined with the format below. The filename is joined with the path at `vartrix.automate.root`, which can be set by calling `vartrix.automate.set_root(path)`.
+**Csv file.** We could achieve the same `vec_2` as above using a csv file combined with the format below. The filename is joined with the path at `vartrix.automate.root`, which can be set by calling `vartrix.automate.set_root(path)`.
 ```yaml
         vec_2:
-			style: csv
+            style: csv
             filename: tutorial_2.csv
 ```
 tutorial_2.csv:
