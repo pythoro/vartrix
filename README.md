@@ -327,12 +327,15 @@ Vectors specify what values to iterate over for one or more aliases. There are m
             style: csv
             filename: tutorial_2.csv
 ```
+
 tutorial_2.csv:
-  | alias_2 | alias_3
-- | ------- | -------
+
+index | alias_2 | alias_3
+----- | ------- | -------
 'a' | 2 | 6
 'b' | 3 | 7
 'c' | 4 | 8
+
 
 #### Initialisation
 
