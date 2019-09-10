@@ -349,7 +349,7 @@ index | alias_2 | alias_3
 
 
 **Custom.** You can even use your own vector interpreter. Here's how:
-* Inherit `vartrix.automate.Vector` and define a method called `setup`. It needs to accept one argument - a dictionary of data that excludes the `style` key-value pair. It needs to return a list of labels (strings), and a list of dictionaries that contain key-value pairs for the aliases and thier corresponding values (e.g. `[{'alias_1': 4, 'alias_2: 5}, {'alias_1': 8, 'alias_2: 9}]`).
+* Inherit `vartrix.automate.Vector` and define a method called `setup`. It needs to accept one argument - a dictionary of data that excludes the `style` key-value pair. It needs to return a list of labels (strings), and a list of dictionaries that contain key-value pairs for the aliases and thier corresponding values (e.g. `[{'alias_1': 4, 'alias_2': 5}, {'alias_1': 8, 'alias_2': 9}]`).
 * Add your style, by calling `vartrix.automate.Vector_Factor.set_style(style_name, vec_cls)`. The *style_name* is a string you specify. The *vec_cls* is the class you just created.
 * Use *style_name* as the `style` value for any vectors that use your new style.
  
