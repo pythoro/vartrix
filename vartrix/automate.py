@@ -17,37 +17,44 @@ def set_root(new):
     root = new
     
 
+def safe_call(method_name, obj, *args, **kwargs):
+    try:
+        method = getattr(obj, method_name)
+        method(*args, **kwargs)
+    except AttributeError:
+        pass
+
 class Automator():
     def __init__(self, container, fname):
         self.container = container
         self.sets = persist.load(fname)
-        
+                
     def run(self, set_name, obj):
         data = self.sets[set_name]
         s = Sequencer(data['sequences'], data['aliases'], data['vectors'])
-        obj.prepare()
+        safe_call('prepare', obj)
         for seq_name, seq_dct in s.all_sequences().items():
             self.execute_sequence(seq_name, seq_dct, obj)
-        obj.finish()
+        safe_call('finish', obj)
 
     def execute_sequence(self, seq_name, seq_dct, obj):
-        obj.prepare_sequence(seq_name)
+        safe_call('prepare_sequence', obj, seq_name)
         for method_name, dct in seq_dct.items():
             self.execute_method(method_name, seq_name,
                                 dct['val_list'],
                                 dct['label_lst'],
                                 obj)
-        obj.finish_sequence(seq_name)
+        safe_call('finish_sequence', obj, seq_name)
 
     def execute_method(self, method_name, seq_name, val_list, label_lst, obj):
         container = self.container
-        obj.prepare_method(method_name)
+        safe_call('prepare_method', obj, method_name)
         method = getattr(obj, method_name)
         with container.context(val_list[0]):
             for val_dct, label_dct in zip(val_list, label_lst):
                 container.dset(val_dct)
                 method(seq_name, val_dct, label_dct)
-        obj.finish_method(method_name)
+        safe_call('finish_method', obj, method_name)
         
     
 class Aliases(dict):
@@ -142,7 +149,7 @@ class Csv_File(Vector):
 class Vector_Factory():
     @classmethod
     def new(cls, data, name):
-        if 'style' not in data:
+        if 'style' not in data or data['style'] == 'value_lists':
             v = List_Vector(name)
             v.initialise(data)
             return v
