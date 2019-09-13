@@ -465,3 +465,14 @@ If we want to change the way we automate the parameters, now we only need to cha
 * Flexble, loosely coupled code. The classes that use the values in the Container need no knowledge of the automation, and the automation needs no knowledge of them.
 
 
+## Related packages
+
+Other packages exist that overlap with vartrix in functionality. You might want to look at:
+
+* parameters
+* param
+* paranormal
+* traits
+* traitlets
+* attrs
+* pypet
