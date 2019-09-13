@@ -120,8 +120,11 @@ class List_Vector(Vector):
     def setup(self, data):
         def default_labels(d):
             for v in dct.values():
-                n = len(v)
-                return [i for i in range(n)]
+                if len(d) == 1:
+                    return v
+                else:
+                    n = len(v)
+                    return [i for i in range(n)]
         dct = data.copy()
         labels = dct.pop('labels', default_labels(dct))
         return labels, self.transpose_dict(dct)    
