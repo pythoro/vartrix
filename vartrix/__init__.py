@@ -5,6 +5,7 @@ Created on Mon Aug 26 16:12:03 2019
 @author: Reuben
 """
 
+from . import utils
 from . import settings
 from . import persist
 from . import container, view
@@ -17,4 +18,5 @@ from .namespace import Name_Space, get_container
 from .container import Container
 from .view import View
 from .automate import Automator
+from .utils import Factory
 
