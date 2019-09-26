@@ -309,9 +309,9 @@ class Test_Sequencer(unittest.TestCase):
                                      {'alias.one': 4}],
                                 'label_lst': 
                                     [{'vec_1': 0},
-                                     {'vec_1': 1},
                                      {'vec_1': 2},
-                                     {'vec_1': 3}]}}
+                                     {'vec_1': 3},
+                                     {'vec_1': 4}]}}
         self.assertDictEqual(sd, expected)
         
     def test_seq_2(self):
@@ -336,15 +336,15 @@ class Test_Sequencer(unittest.TestCase):
                     {'vec_1': 0, 'vec_2': 'a'},
                     {'vec_1': 0, 'vec_2': 'b'},
                     {'vec_1': 0, 'vec_2': 'c'},
-                    {'vec_1': 1, 'vec_2': 'a'},
-                    {'vec_1': 1, 'vec_2': 'b'},
-                    {'vec_1': 1, 'vec_2': 'c'},
                     {'vec_1': 2, 'vec_2': 'a'},
                     {'vec_1': 2, 'vec_2': 'b'},
                     {'vec_1': 2, 'vec_2': 'c'},
                     {'vec_1': 3, 'vec_2': 'a'},
                     {'vec_1': 3, 'vec_2': 'b'},
-                    {'vec_1': 3, 'vec_2': 'c'}]}, 
+                    {'vec_1': 3, 'vec_2': 'c'},
+                    {'vec_1': 4, 'vec_2': 'a'},
+                    {'vec_1': 4, 'vec_2': 'b'},
+                    {'vec_1': 4, 'vec_2': 'c'}]}, 
             'method_a': {'val_list': [
                     {'alias.two': 2, 'alias.three': 6, 'alias.four': 4},
                     {'alias.two': 2, 'alias.three': 6, 'alias.four': 5},
@@ -379,12 +379,12 @@ class Test_Sequencer(unittest.TestCase):
                 'label_lst': [
                     {'vec_1': 0, 'vec_3': 'four'},
                     {'vec_1': 0, 'vec_3': 'five'},
-                    {'vec_1': 1, 'vec_3': 'four'},
-                    {'vec_1': 1, 'vec_3': 'five'},
                     {'vec_1': 2, 'vec_3': 'four'},
                     {'vec_1': 2, 'vec_3': 'five'},
                     {'vec_1': 3, 'vec_3': 'four'},
-                    {'vec_1': 3, 'vec_3': 'five'}]}}
+                    {'vec_1': 3, 'vec_3': 'five'},
+                    {'vec_1': 4, 'vec_3': 'four'},
+                    {'vec_1': 4, 'vec_3': 'five'}]}}
         self.assertDictEqual(sd, expected)
         
 
