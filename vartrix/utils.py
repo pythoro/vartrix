@@ -18,16 +18,20 @@ class Factory():
         name (str): The module name (often `__name__`)
         container (Container): The container instance
         dotkey (str): The dotkey of the class name.
+        build_function (func): OPTIONAL: A function that takes the new
+        instance object. If provided, the return value of the Factory is
+        the return value of the function.
         
     Note:
         The class name pointed to by the dotkey must exist in the module,
         or a KeyError will be raised.
     '''
     
-    def __init__(self, name, container, dotkey):
+    def __init__(self, name, container, dotkey, build_function=None):
         self.container = container
         self.name = name
         self.dotkey = dotkey
+        self.build_function = build_function
     
     def new(self):
         ''' Create a new instance based on the current dotkey value '''
@@ -40,4 +44,8 @@ class Factory():
         except KeyError:
             raise KeyError('Class ' + str(cls_name) + ' not found in module '
                            + str(self.name))
-        return c()
+        if self.build_function is None:
+            return c()
+        else:
+            obj = c()
+            return self.build_function(obj)
