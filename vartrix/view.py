@@ -55,7 +55,7 @@ class View(dict):
         dotkeys = [dotkeys] if isinstance(dotkeys, str) else dotkeys
         dotkeys = get_bases(obj) if obj is not None else dotkeys
         for dotkey in dotkeys:
-            self._add_dotkey(dotkey)
+            self.add_dotkey(dotkey)
     
     @property
     def live(self):
@@ -71,7 +71,7 @@ class View(dict):
     def __hash__(self):
         return self.__hash
         
-    def _add_dotkey(self, dotkey):
+    def add_dotkey(self, dotkey):
         if dotkey is None or dotkey in ['', '.']:
             dotkey == '__ROOT__'
         self._hook_to_container(dotkey)
