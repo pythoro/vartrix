@@ -132,6 +132,9 @@ class Container(dict):
         Args:
             dotkey (str): The dotkey prefix. The dictionary will include all
             dotkeys that begin with this prefix.
+            
+        Note:
+            Sub-keys (nested dictionaries) will not be included.
         '''
         if is_root(dotkey):
             return self.copy()

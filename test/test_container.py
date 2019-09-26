@@ -16,6 +16,12 @@ def get_c():
     c.set('b.c', 7)
     return c
 
+def get_c2():
+    d = {'a': {'b': 1, 'c': 2},
+         'd': {'e': 3, 'f': 4, 'g': {'h': 5, 'i': 6}}}
+    c = Container(d)
+    return c
+
 class View_Mock():
     def _view_update(self, key, val):
         self.key = key
@@ -71,6 +77,18 @@ class Test_Container(unittest.TestCase):
         c = Container()
         c.set('a.b', 6)
         self.assertEqual(c.get('a.b'), 6)
+
+    def test_get_dct_flat(self):
+        c = get_c2()
+        d = c.get_dct('a')
+        expected = {'b': 1, 'c': 2}
+        self.assertDictEqual(d, expected)
+        
+    def test_get_dct_nested(self):
+        c = get_c2()
+        d = c.get_dct('d')
+        expected = {'e': 3, 'f': 4}
+        self.assertDictEqual(d, expected)
 
     def test_lset(self):
         c = Container()
