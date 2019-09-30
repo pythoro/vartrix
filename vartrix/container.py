@@ -18,6 +18,8 @@ import weakref
 from collections import defaultdict
 from contextlib import contextmanager
 
+from . import utils
+
 def is_root(dotkey):
     ''' Check if a dotkey is the root (container level) '''
     return dotkey in [None, '__ROOT__', '', '.']
@@ -134,14 +136,14 @@ class Container(dict):
             dotkeys that begin with this prefix.
             
         Note:
-            Sub-keys (nested dictionaries) will not be included.
+            Changes within nested dictionaries are not tracked.
         '''
         if is_root(dotkey):
             return self.copy()
         out = {}
         for key, val in self.items():
-            root, k = self._split_dotkey(key)
-            if root == dotkey:
+            if key.startswith(dotkey):
+                k = key.lstrip(dotkey + '.')
                 out[k] = val
         return out
 

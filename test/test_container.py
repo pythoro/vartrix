@@ -87,7 +87,7 @@ class Test_Container(unittest.TestCase):
     def test_get_dct_nested(self):
         c = get_c2()
         d = c.get_dct('d')
-        expected = {'e': 3, 'f': 4}
+        expected = {'e': 3, 'f': 4, 'g.h': 5, 'g.i': 6}
         self.assertDictEqual(d, expected)
 
     def test_lset(self):
