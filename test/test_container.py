@@ -106,12 +106,6 @@ class Test_Container(unittest.TestCase):
         dct = {'a.b': 6}
         c.dset(dct)
         self.assertDictEqual(c, dct)
-    
-    def test_nest(self):
-        c = Container()
-        ret = c._nest(['a', 'b', 'c', 'd'], 5)
-        expected = {'a': {'b': {'c': {'d': 5}}}}
-        self.assertDictEqual(ret, expected)
         
     def test_nested(self):
         c = get_c()

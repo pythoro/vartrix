@@ -49,3 +49,22 @@ class Factory():
         else:
             obj = c()
             return self.build_function(obj)
+        
+        
+def _nest(key_list, val, dct=None):
+    dct = {} if dct is None else dct
+    if len(key_list) == 1:
+        dct[key_list[0]] = val
+    else:
+        if key_list[0] not in dct:
+            dct[key_list[0]] = {}
+        _nest(key_list[1:], val, dct[key_list[0]])
+    return dct
+
+def nested(dct):
+    ''' Create a nested dictionary representation of a dotkey flat dictionary '''
+    out_dct = {}
+    for dotkey, val in dct.items():
+        key_list = dotkey.split('.')
+        _nest(key_list, val, out_dct)
+    return out_dct

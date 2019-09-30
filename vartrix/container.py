@@ -163,23 +163,9 @@ class Container(dict):
         root = safe_root('.'.join(split))
         return root, k
 
-    def _nest(self, key_list, val, dct=None):
-        dct = {} if dct is None else dct
-        if len(key_list) == 1:
-            dct[key_list[0]] = val
-        else:
-            if key_list[0] not in dct:
-                dct[key_list[0]] = {}
-            self._nest(key_list[1:], val, dct[key_list[0]])
-        return dct
-    
     def nested(self):
         ''' Create a nested dictionary representation of the container '''
-        dct = {}
-        for dotkey, val in self.items():
-            key_list = dotkey.split('.')
-            self._nest(key_list, val, dct)
-        return dct
+        return utils.nested(self)
     
     def container(self, dct, parents=None, current=None):
         ''' Create a container dictionary (recursively) 

@@ -14,6 +14,8 @@ those are subkeys of 'A'.
 import uuid
 from contextlib import contextmanager
 
+from . import utils
+
 def get_bases(obj):
     ''' Get a list of bases for an object instance '''
     def dotkey(c):
@@ -45,12 +47,14 @@ class View(dict):
         provide both dictionary-style access and attribute-style access to
         values.
     '''
-    def __init__(self, container, dotkeys=None, live=True, obj=None):
+    def __init__(self, container, dotkeys=None, live=True, obj=None,
+                 nesting=True):
         self.__hash = hash(uuid.uuid4())
         self._container = container
         self.dotkeys = []
         self._live = live
         self.dirty = False
+        self.nesting = nesting
         dotkeys = ['__ROOT__'] if dotkeys is None else dotkeys
         dotkeys = [dotkeys] if isinstance(dotkeys, str) else dotkeys
         dotkeys = get_bases(obj) if obj is not None else dotkeys
