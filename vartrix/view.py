@@ -91,7 +91,7 @@ class View(dict):
         self.dotkeys.append(dotkey)
         
     def _update(self, dotkey):
-        dct = self._container.get_dct(dotkey)
+        dct = utils.nested(self._container.get_dct(dotkey))
         for key in dct.keys():
             if key in self:
                 self._clash_error(key, dotkey)

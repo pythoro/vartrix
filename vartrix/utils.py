@@ -68,3 +68,4 @@ def nested(dct):
         key_list = dotkey.split('.')
         _nest(key_list, val, out_dct)
     return out_dct
+
