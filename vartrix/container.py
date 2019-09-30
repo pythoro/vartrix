@@ -143,15 +143,24 @@ class Container(dict):
         out = {}
         for key, val in self.items():
             if key.startswith(dotkey):
-                k = key.lstrip(dotkey + '.')
+                k = key.replace(dotkey + '.', '')
                 out[k] = val
         return out
 
     def update_observers(self, dotkey, val):
         ''' Update the observers for a given dotkey with a value '''
-        root, key = self._split_dotkey(dotkey)
-        for view in self._observers[root]:
-            view._view_update(key, val)
+        def all_possible(dotkey):
+            ''' Include observes at higher levels '''
+            split = dotkey.split('.')
+            roots = ['__ROOT__']
+            keys = [dotkey]
+            for i in range(1, len(split)):
+                roots.append('.'.join(split[:i]))
+                keys.append('.'.join(split[i:]))
+            return roots, keys
+        for root, key in zip(*all_possible(dotkey)):
+            for view in self._observers[root]:
+                view._view_update(key, val)
 
     def __setitem__(self, key, val):
         return self.set(key, val)

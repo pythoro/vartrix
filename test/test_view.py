@@ -88,6 +88,17 @@ class Test_View(unittest.TestCase):
         self.assertEqual(res, expected)
         res2 = c['a.b']
         self.assertEqual(res2, expected)
+
+    def test_nested_set(self):
+        c = get_c()
+        c['a.g.h'] = 55
+        dotkeys = ['a']
+        v = View(c, dotkeys)
+        v['g.h'] = 99
+        res = v['g']
+        expected = {'h': 99}
+        self.assertDictEqual(res, expected)
+        
         
     def test_set_remote(self):
         c = get_c()

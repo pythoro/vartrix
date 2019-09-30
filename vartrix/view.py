@@ -46,6 +46,12 @@ class View(dict):
         Views cache values and update them as required for performance. They
         provide both dictionary-style access and attribute-style access to
         values.
+        
+    Note:
+        Subdictionaries are updated from the container. But, any values
+        set in subdictionaries on the View do not update those in the
+        container.
+        
     '''
     def __init__(self, container, dotkeys=None, live=True, obj=None,
                  nesting=True):
@@ -143,10 +149,26 @@ class View(dict):
     def __setitem__(self, key, val):
         return self.set(key, val)
     
+    def _nested_set(self, key_list, val, dct=None):
+        d = self if dct is None else dct
+        if len(key_list) > 1:
+            root = key_list[0]
+            if root not in d:
+                d[root] = {}
+                setattr(self, root, d[root])
+            d_sub = d[root]
+            self._nested_set(key_list[1:], val, dct=d_sub)
+        else:
+            key = key_list[0]
+            if d is self:
+                super().__setitem__(key, val)
+                setattr(self, key, val)
+            else:
+                d[key] = val
+    
     def _view_update(self, key, val):
         if self._live:
-            super().__setitem__(key, val)
-            setattr(self, key, val)
+            self._nested_set(key.split('.'), val)
     
     def dset(self, dct):
         ''' Set multiple values using a dictionary '''
