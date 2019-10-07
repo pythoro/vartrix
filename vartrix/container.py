@@ -195,6 +195,10 @@ class Container(dict):
     def load(self, dct):
         ''' Set the container data using a dictionary '''
         self.clear()
+        self.add(dct)
+        
+    def add(self, dct):
+        ''' Add another set of data to the container '''
         self.update(self.container(dct))
         for dotkey, observers in self._observers.items():
             for observer in observers:
