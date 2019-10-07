@@ -29,5 +29,22 @@ set_1:
             method_c: [vec_1, vec_3]
         seq_4:
             method_c: [vec_3, vec_4]
-
-        
+set_2:
+    aliases:
+        alias_1: alias.one
+        alias_2: alias.two
+        alias_3: alias.three
+    constants:
+        const_1:
+            alias_1: 5
+        const_2:
+            alias_2: 7
+    vectors:
+        vec_1:
+            alias_3: [1, 2, 3]
+    sequences:
+        seq_10:
+            method_a: [const_1, const_2]
+        seq_11:
+            method_a: [const_1, vec_1]
+            

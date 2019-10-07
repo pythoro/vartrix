@@ -30,8 +30,19 @@ class Automator():
         self.sets = persist.load(fname)
                 
     def run(self, set_name, obj):
+        ''' Run an automation set 
+        
+        Args:
+            set_name (str): The name of the set to run
+            obj (object): The automated class instance.
+        '''
         data = self.sets[set_name]
-        s = Sequencer(data['sequences'], data['aliases'], data['vectors'])
+        vec_data = {}
+        if 'vectors' in data:
+            vec_data.update(data['vectors'])
+        if 'constants' in data:
+            vec_data.update(data['constants'])
+        s = Sequencer(data['sequences'], data['aliases'], vec_data)
         safe_call('prepare', obj)
         for seq_name, seq_dct in s.all_sequences().items():
             self.execute_sequence(seq_name, seq_dct, obj)
@@ -138,6 +149,13 @@ class Dict_List_Vector(Vector):
             d.append(dct)
         return labels, d
 
+class Constant(Vector):
+    def setup(self, data):
+        k, v = data.copy().popitem()
+        labels = [v]
+        d = [data.copy()]
+        return labels, d
+
 class Csv_File(Vector):
     def setup(self, data):
         d = []
@@ -152,7 +170,8 @@ class Csv_File(Vector):
 class Vector_Factory():
     styles = {'value_lists': List_Vector,
               'value_dictionaries': Dict_List_Vector,
-              'csv': Csv_File}
+              'csv': Csv_File,
+              'constant': Constant}
     default_style = 'value_lists'
 
     @classmethod
@@ -165,6 +184,10 @@ class Vector_Factory():
             vec_cls = cls.styles[cls.default_style]
         else:
             vec_cls = cls.styles[data['style']]
+        if len(data) == 1:
+            for k, v in data.items():
+                if not isinstance(v, (list, dict)):
+                    vec_cls = cls.styles['constant']
         v = vec_cls(name)
         d = data.copy()
         try:

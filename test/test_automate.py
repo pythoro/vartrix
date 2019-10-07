@@ -408,3 +408,39 @@ class Test_Sequencer(unittest.TestCase):
                     {'vec_3': 'five', 'vec_4': 'b'},
                     {'vec_3': 'five', 'vec_4': 'c'}]}}
         self.assertDictEqual(sd, expected)
+        
+    def get_s2(self):
+        all_data = get_test_data()
+        data = all_data['set_2']
+        d = data['vectors']
+        d.update(data['constants'])
+        s = automate.Sequencer(data['sequences'],
+                               data['aliases'],
+                               d)
+        return s
+    
+    def test_seq_10(self):
+        s = self.get_s2()
+        sd = s.sequence('seq_10')
+        expected = {
+            'method_a': {
+                'val_list': [
+                    {'alias.one': 5, 'alias.two': 7}],
+                'label_lst': [
+                    {'const_1': 5, 'const_2': 7}]}}
+        self.assertDictEqual(sd, expected)
+        
+    def test_seq_11(self):
+        s = self.get_s2()
+        sd = s.sequence('seq_11')
+        expected = {
+            'method_a': {
+                'val_list': [
+                    {'alias.one': 5, 'alias.three': 1},
+                    {'alias.one': 5, 'alias.three': 2},
+                    {'alias.one': 5, 'alias.three': 3}],
+                'label_lst': [
+                    {'const_1': 5, 'vec_1': 1},
+                    {'const_1': 5, 'vec_1': 2},
+                    {'const_1': 5, 'vec_1': 3}]}}
+        self.assertDictEqual(sd, expected)
