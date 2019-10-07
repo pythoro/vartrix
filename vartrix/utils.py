@@ -9,7 +9,7 @@ This module contains helper classes and functions.
 """
 
 import inspect, sys
-
+import numpy as np
 
 class Factory():
     ''' Instantiate module classes based on container key 
@@ -69,3 +69,8 @@ def nested(dct):
         _nest(key_list, val, out_dct)
     return out_dct
 
+def numpify(obj):
+    if isinstance(obj, list):
+        return np.array(obj)
+    else:
+        return obj

@@ -54,13 +54,14 @@ class View(dict):
         
     '''
     def __init__(self, container, dotkeys=None, live=True, obj=None,
-                 nesting=True):
+                 nesting=True, numpify=None):
         self.__hash = hash(uuid.uuid4())
         self._container = container
         self.dotkeys = []
         self._live = live
         self.dirty = False
         self.nesting = nesting
+        self.numpify = numpify
         dotkeys = ['__ROOT__'] if dotkeys is None else dotkeys
         dotkeys = [dotkeys] if isinstance(dotkeys, str) else dotkeys
         dotkeys = get_bases(obj) if obj is not None else dotkeys
@@ -136,7 +137,7 @@ class View(dict):
             container. The key must already exist.
         '''
         if not self._live:
-            super().__setitem__(key, val)
+            self._set_val(key, val)
             return
         container = self._container
         for dotkey in self.dotkeys:
@@ -161,14 +162,20 @@ class View(dict):
         else:
             key = key_list[0]
             if d is self:
-                super().__setitem__(key, val)
-                setattr(self, key, val)
+                self._set_val(key, val)
             else:
                 d[key] = val
     
     def _view_update(self, key, val):
         if self._live:
             self._nested_set(key.split('.'), val)
+    
+    def _set_val(self, key, val):
+        if (self.numpify is not None 
+            and (self.numpify is True or key in self.numpify)):
+                val = utils.numpify(val)
+        super().__setitem__(key, val)
+        setattr(self, key, val)
     
     def dset(self, dct):
         ''' Set multiple values using a dictionary '''
