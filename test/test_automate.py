@@ -295,7 +295,7 @@ class Test_Sequencer(unittest.TestCase):
         all_data = get_test_data()
         data = all_data['set_1']
         s = automate.Sequencer(data['sequences'],
-                               data['aliases'],
+                               all_data['aliases'],
                                data['vectors'])
         return s
     
@@ -415,7 +415,7 @@ class Test_Sequencer(unittest.TestCase):
         d = data['vectors']
         d.update(data['constants'])
         s = automate.Sequencer(data['sequences'],
-                               data['aliases'],
+                               all_data['aliases'],
                                d)
         return s
     

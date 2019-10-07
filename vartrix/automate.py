@@ -42,7 +42,7 @@ class Automator():
             vec_data.update(data['vectors'])
         if 'constants' in data:
             vec_data.update(data['constants'])
-        s = Sequencer(data['sequences'], data['aliases'], vec_data)
+        s = Sequencer(data['sequences'], self.sets['aliases'], vec_data)
         safe_call('prepare', obj)
         for seq_name, seq_dct in s.all_sequences().items():
             self.execute_sequence(seq_name, seq_dct, obj)

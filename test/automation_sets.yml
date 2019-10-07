@@ -1,9 +1,9 @@
+aliases:
+    alias_1: alias.one
+    alias_2: alias.two
+    alias_3: alias.three
+    alias_4: alias.four
 set_1:
-    aliases:
-        alias_1: alias.one
-        alias_2: alias.two
-        alias_3: alias.three
-        alias_4: alias.four
     vectors:
         vec_1:
             alias_1: [0, 2, 3, 4]
@@ -30,10 +30,6 @@ set_1:
         seq_4:
             method_c: [vec_3, vec_4]
 set_2:
-    aliases:
-        alias_1: alias.one
-        alias_2: alias.two
-        alias_3: alias.three
     constants:
         const_1:
             alias_1: 5
