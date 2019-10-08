@@ -8,6 +8,8 @@ Created on Mon Sep  9 17:05:43 2019
 import ruamel.yaml as yml
 
 class Manager():
+    default_handler = 'yaml'
+    
     def __init__(self):
         self.handlers = {'yaml': Yaml()}
         self.specified = None
@@ -26,6 +28,9 @@ class Manager():
         for k, handler in self.handlers.items():
             if handler.suitable(source, **kwargs):
                 return handler.load(source, **kwargs)
+            else:
+                f = source + '.yaml'
+                return self.handlers[self.default_handler].load(f, **kwargs)
         raise ValueError('No suitable load handler found for source: "'
                           + source + '"')
 
@@ -37,6 +42,9 @@ class Manager():
         for k, handler in self.handlers.items():
             if handler.suitable(target, **kwargs):
                 return handler.save(dct, target, **kwargs)
+            else:
+                f = target + '.yaml'
+                return self.handlers[self.default_handler].save(dct, f, **kwargs)
         raise ValueError('No suitable save handler found for target: "' 
                          + target + '"')
         
@@ -48,13 +56,14 @@ class Yaml():
         return test_1 or test_2
         
     def load(self, fname, **kwargs):
-        with open(fname) as f:
+        with open(fname, mode='r') as f:
             dct = yml.safe_load(f)
         return dct
     
     def save(self, dct, fname, **kwargs):
-        with open(fname) as f:
-            yml.safe_write(dct, f)
+        with open(fname, mode='w') as f:
+            y = yml.YAML()
+            y.dump(dict(dct), f)
             
             
 manager = Manager()
