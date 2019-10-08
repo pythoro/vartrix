@@ -86,8 +86,9 @@ class Container(dict):
         '''
         if safe and dotkey not in self:
             raise KeyError('In safe mode, key ' + dotkey + ' must be present.')
-        super().__setitem__(dotkey, val)
-        self.update_observers(dotkey, val)
+        v = utils.denumpify(val)
+        super().__setitem__(dotkey, v)
+        self.update_observers(dotkey, v)
         
     def lset(self, key_list, val, safe=False):
         ''' Set the value of a dotkey specified as a list 

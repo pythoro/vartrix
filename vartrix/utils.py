@@ -74,3 +74,9 @@ def numpify(obj):
         return np.array(obj)
     else:
         return obj
+    
+def denumpify(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    else:
+        return obj

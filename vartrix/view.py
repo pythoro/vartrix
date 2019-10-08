@@ -102,9 +102,8 @@ class View(dict):
         for key in dct.keys():
             if key in self:
                 self._clash_error(key, dotkey)
-        self.update(dct)
         for k, v in dct.items():
-            setattr(self, k, v)
+            self._set_val(k, v)
         
     def refresh(self):
         ''' Refresh all values if required '''
