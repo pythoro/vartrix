@@ -265,6 +265,24 @@ class Test_List_Vector(unittest.TestCase):
         expected = [{'alias_1': 1, 'alias_2': 3}, {'alias_1': 2, 'alias_2': 4}]
         self.assertListEqual(d_test, expected)
     
+class Test_Dict_List_Vector(unittest.TestCase):
+
+    def test_int(self):
+        d = {'a':  {'b': 1}}
+        v = automate.Dict_List_Vector('test_name')
+        labels, d = v.setup(d)
+        expected = [{'b': 1}]
+        self.assertListEqual(d, expected)
+        self.assertListEqual(labels, ['a'])
+    
+    def test_vector(self):
+        d = {'a':  {'b': [ 1,  2,  3]}}
+        v = automate.Dict_List_Vector('test_name')
+        labels, d = v.setup(d)
+        expected = [{'b': [1, 2, 3]}]
+        self.assertListEqual(d, expected)
+        self.assertListEqual(labels, ['a'])
+            
     
 class Test_Vectors(unittest.TestCase):
     def make_vectors(self):
