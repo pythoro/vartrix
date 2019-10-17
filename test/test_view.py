@@ -9,6 +9,7 @@ import unittest
 
 from vartrix.container import Container
 from vartrix.view import View
+from vartrix import settings
 
 def get_c():
     c = Container()
@@ -152,6 +153,25 @@ class Test_View(unittest.TestCase):
         v.live = True
         res3 = v['b']
         expected3 = 5
+        self.assertEqual(res3, expected3)
+
+    def test_live_settings(self):
+        c = get_c()
+        dotkeys = ['a']
+        settings.LIVE_VIEWS = False
+        v = View(c, dotkeys)
+        # v.live = False
+        settings.LIVE_VIEWS = True
+        c['a.b'] = 99
+        res = v['b']
+        expected = 5
+        self.assertEqual(res, expected)
+        res2 = c['a.b']
+        expected2 = 99
+        self.assertEqual(res2, expected2)
+        v.live = True
+        res3 = v['b']
+        expected3 = 99
         self.assertEqual(res3, expected3)
         
     def test_context(self):

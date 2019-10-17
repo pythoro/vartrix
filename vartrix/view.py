@@ -15,6 +15,7 @@ import uuid
 from contextlib import contextmanager
 
 from . import utils
+from . import settings
 
 def get_bases(obj):
     ''' Get a list of bases for an object instance '''
@@ -37,7 +38,7 @@ class View(dict):
         dotkeys (list[str]): A list of strings specifying the dotkey prefixes
         for the view.
         live (bool): Optional boolean to specify whether the view stays in
-        sync with the container. Defaults to True.
+        sync with the container. Defaults to settings.LIVE_VIEWS.
         obj (object): Instead of specifying dotkeys, an object can be passed
         in. The bases of the object will be used as dotkeys (after removing
         the top-level key).
@@ -53,12 +54,12 @@ class View(dict):
         container.
         
     '''
-    def __init__(self, container, dotkeys=None, live=True, obj=None,
-                 nesting=True, numpify=None):
+    def __init__(self, container, dotkeys=None, live=None,
+                 obj=None, nesting=True, numpify=None):
         self.__hash = hash(uuid.uuid4())
         self._container = container
         self.dotkeys = []
-        self._live = live
+        self._live = settings.LIVE_VIEWS if live is None else live
         self.dirty = False
         self.nesting = nesting
         self.numpify = numpify
