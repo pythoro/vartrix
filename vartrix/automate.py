@@ -8,7 +8,7 @@ Created on Mon Aug 26 22:12:43 2019
 import os
 import pandas as pd
 
-from . import persist
+from . import persist, settings
 
 root = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,7 +28,13 @@ class Automator():
     def __init__(self, container, fname):
         self.container = container
         self.sets = persist.load(fname)
-                
+            
+    def show(self, method_name, seq_name, label_dct):
+        print('Executing "' + method_name + '" method in "' + seq_name +
+              '" sequence with:')
+        for vec_name, item_name in label_dct.items():
+            print('   ' + (vec_name + ': ').ljust(25) + str(item_name))
+        
     def run(self, set_name, obj):
         ''' Run an automation set 
         
@@ -64,6 +70,8 @@ class Automator():
         with container.context(val_list[0]):
             for val_dct, label_dct in zip(val_list, label_lst):
                 container.dset(val_dct)
+                if settings.PRINT_UPDATES:
+                    self.show(method_name, seq_name, label_dct)
                 method(seq_name, val_dct, label_dct)
         safe_call('finish_method', obj, method_name)
         
