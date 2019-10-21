@@ -48,6 +48,7 @@ class Container(dict):
     def __init__(self, dct=None, name=None):
         self.name = name
         self._observers = defaultdict(weakref.WeakSet)
+        self._backup = {}
         if dct is not None:
             self.load(dct)
 
@@ -196,11 +197,17 @@ class Container(dict):
     def load(self, dct):
         ''' Set the container data using a dictionary '''
         self.clear()
+        self._backup.clear()
         self.add(dct)
+        
+    def reset(self):
+        self.load(self._backup.copy())
         
     def add(self, dct):
         ''' Add another set of data to the container '''
-        self.update(self.container(dct))
+        cdct = self.container(dct)
+        self.update(cdct)
+        self._backup.update(cdct)
         for dotkey, observers in self._observers.items():
             for observer in observers:
                 observer.dirty = True

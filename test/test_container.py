@@ -169,3 +169,11 @@ class Test_Container(unittest.TestCase):
                 self.assertDictEqual(c, expected2)
             self.assertDictEqual(c, expected1)
         self.assertDictEqual(dct, c)
+        
+    def test_reset(self):
+        c = get_c2()
+        c.set('z.c', 7)
+        c.reset()
+        dct = {'a.b': 1, 'a.c': 2,
+             'd.e': 3, 'd.f': 4, 'd.g.h': 5, 'd.g.i': 6}
+        self.assertDictEqual(dct, c)
