@@ -236,14 +236,14 @@ class Container(dict):
         return c
     
     @contextmanager
-    def context(self, dct):
+    def context(self, dct, safe=True):
         ''' A context manager for temporary changes in values 
         
         Args:
             dct (dict): A dictionary of dotkey-value pairs.
         '''
         originals = {k: self[k] for k in dct.keys()}
-        self.dset(dct)
+        self.dset(dct, safe=safe)
         yield self
-        self.dset(originals)
+        self.dset(originals, safe=safe)
         
