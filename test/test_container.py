@@ -22,6 +22,13 @@ def get_c2():
     c = Container(d)
     return c
 
+def get_c2_underscore():
+    d = {'a': {'b': 1, 'c': 2},
+         'd': {'e': 3, 'f': 4, 'g': {'h': 5, 'i': 6}},
+         'd_': {'z': 55}}
+    c = Container(d)
+    return c
+
 class View_Mock():
     def _view_update(self, key, val):
         self.key = key
@@ -88,6 +95,18 @@ class Test_Container(unittest.TestCase):
         c = get_c2()
         d = c.get_dct('d')
         expected = {'e': 3, 'f': 4, 'g.h': 5, 'g.i': 6}
+        self.assertDictEqual(d, expected)
+
+    def test_get_dct_nested_underscore(self):
+        c = get_c2_underscore()
+        d = c.get_dct('d')
+        expected = {'e': 3, 'f': 4, 'g.h': 5, 'g.i': 6}
+        self.assertDictEqual(d, expected)
+
+    def test_get_dct_underscore(self):
+        c = get_c2_underscore()
+        d = c.get_dct('d_')
+        expected = {'z': 55}
         self.assertDictEqual(d, expected)
 
     def test_lset(self):

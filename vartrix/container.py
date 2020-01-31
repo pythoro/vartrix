@@ -142,11 +142,15 @@ class Container(dict):
         '''
         if is_root(dotkey):
             return self.copy()
+        n = len(dotkey)
         out = {}
         for key, val in self.items():
-            if key.startswith(dotkey):
-                k = key.replace(dotkey + '.', '')
-                out[k] = val
+            if key[:n] == dotkey and len(key) > n+1:
+                # Check it's definately a dot after the dotkey before adding it
+                # Otherwise it might add e.g. underscored dotkeys.
+                if key[n] == '.':
+                    k = key[n+1:]
+                    out[k] = val
         return out
 
     def update_observers(self, dotkey, val):
