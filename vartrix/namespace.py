@@ -11,6 +11,7 @@ class Name_Space(dict):
     def __init__(self, obj_cls=Container):
         self.i = 0
         self.obj_cls = obj_cls
+        self._active_container = None
     
     def __missing__(self, key):
         return self.create(key)
@@ -27,6 +28,20 @@ class Name_Space(dict):
         if key not in self:
             return self.create(key, dct)
         return self[key]
+
+    def set_active(self, key):
+        if key in self or key is None:
+            self._active_container = key
+        else:
+            raise KeyError(key + ' not found in name space.')
+    
+    def active_container(self):
+        return self[self._active_container]
+    
+    def duplicate(self, key, new_key):
+        self[new_key] = self[key].copy()
+        return self[new_key]
+
 
 default = Name_Space()
 
