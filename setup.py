@@ -14,13 +14,13 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setuptools.setup(
     name="vartrix",
-    version="0.0.7",
+    version="0.0.8",
     author="Reuben Rusk",
     description="Easily manange and automate variables and parameters.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pythoro/vartrix.git",
-    download_url="https://github.com/pythoro/vartrix/archive/v0.0.7.zip",
+    download_url="https://github.com/pythoro/vartrix/archive/v0.0.8.zip",
     packages=['vartrix'],
     keywords=['PARAMETERS', 'VARIABLES', 'PARAMETRIC', 'AUTOMATION', 'AUTOMATE'],
     classifiers=[
