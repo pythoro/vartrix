@@ -130,6 +130,13 @@ class Container(dict):
         '''
         self._observers[safe_root(dotkey)].add(view)
 
+    def __missing__(self, key):
+        try:
+            ret = self.get_dct(key)
+        except:
+            return super().__missing__()
+        return ret
+
     def get_dct(self, dotkey):
         ''' Return a dictionary of all key-value pairs for a dotkey prefix 
         
