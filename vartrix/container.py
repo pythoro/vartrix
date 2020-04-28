@@ -30,7 +30,19 @@ def safe_root(dotkey):
         return '__ROOT__'
     else:
         return dotkey
-    
+
+
+class Picker():
+    def __init__(self, container, dotkey):
+        self._container = container
+        self._dotkey = dotkey
+        
+    def __getattr__(self, key):
+        return self._container[self._dotkey + '.' + key]
+
+    def __getitem__(self, key):
+        return self._container[self._dotkey + '.' + key]
+
 
 class Container(dict):
     ''' A dictionary-like class that updates observers 
@@ -258,3 +270,11 @@ class Container(dict):
         yield self
         self.dset(originals, safe=safe)
         
+    def get_picker(self, dotkey):
+        return Picker(self, dotkey)
+    
+    def copy(self):
+        return Container(dct=self, name=self.name)
+    
+    def to_dict(self):
+        return dict(self)
