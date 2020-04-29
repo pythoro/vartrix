@@ -266,7 +266,6 @@ class Test_Value_Lists(unittest.TestCase):
         self.assertListEqual(d_test, expected)
     
 class Test_Value_Dictionaries(unittest.TestCase):
-
     def test_int(self):
         d = {'a':  {'b': 1}}
         v = automate.Value_Dictionaries('test_name')
@@ -282,6 +281,18 @@ class Test_Value_Dictionaries(unittest.TestCase):
         expected = [{'b': [1, 2, 3]}]
         self.assertListEqual(d, expected)
         self.assertListEqual(labels, ['a'])
+
+
+class Test_Constant(unittest.TestCase):
+    def test_simple_int(self):
+        dct = {'a':  4}
+        v = automate.Constant('test_name')
+        labels, d = v.setup(dct)
+        expected = [{'a': 4}]
+        self.assertListEqual(d, expected)
+        self.assertListEqual(labels, [4])
+    
+
 
 class Test_Vector_Factory(unittest.TestCase):
     def test_guess_style_value_lists(self):
@@ -302,12 +313,16 @@ class Test_Vector_Factory(unittest.TestCase):
         self.assertEqual(res, automate.Value_Dictionaries)
 
     def test_guess_style_constant(self):
-        d = {'a': 5,
-             'b': 'test',
-             'c': 5.4,
-             'd': [1, 2, 3]}
+        d = {'a': 5}
         res = automate.Vector_Factory._guess_style(d)
         self.assertEqual(res, automate.Constant)
+
+    def test_guess_style_not_understood(self):
+        d = {'a': 5,
+             'b': 'test'}
+        with self.assertRaises(ValueError):
+            automate.Vector_Factory._guess_style(d)
+        
         
     
 class Test_Vectors(unittest.TestCase):

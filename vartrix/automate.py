@@ -221,8 +221,10 @@ class Vector_Factory():
                 return Value_Lists
             elif all([isinstance(v, dict) for v in objs]):
                 return Value_Dictionaries
-            else:
+            elif len(data) == 1:
                 return Constant
+            else:
+                raise ValueError('Input style not understood: ' + str(data))
             
     
 class Vectors():
