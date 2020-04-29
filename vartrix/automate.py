@@ -25,9 +25,14 @@ def safe_call(method_name, obj, *args, **kwargs):
         pass
 
 class Automator():
-    def __init__(self, container, fname):
+    def __init__(self, container, fname=None, sets=None):
         self.container = container
-        self.sets = persist.load(fname)
+        if fname is not None and sets is None:
+            self.sets = persist.load(fname)
+        elif fname is None and sets is not None:
+            self.sets = sets
+        else:
+            raise AttributeError('Either fname or sets must be given.')
             
     def show(self, method_name, seq_name, label_dct):
         print('Executing "' + method_name + '" method in "' + seq_name +
@@ -127,7 +132,7 @@ class Vector():
                 lst.append(d.copy())
         return lst
 
-class List_Vector(Vector):
+class Value_Lists(Vector):
     def transpose_dict(self, dct):
         n = len(list(dct.values())[0])
         out = [{} for i in range(n)]
@@ -148,7 +153,7 @@ class List_Vector(Vector):
         labels = dct.pop('labels', default_labels(dct))
         return labels, self.transpose_dict(dct)    
 
-class Dict_List_Vector(Vector):
+class Value_Dictionaries(Vector):
     def setup(self, data):
         labels = []
         d = []
@@ -176,8 +181,8 @@ class Csv_File(Vector):
 
     
 class Vector_Factory():
-    styles = {'value_lists': List_Vector,
-              'value_dictionaries': Dict_List_Vector,
+    styles = {'value_lists': Value_Lists,
+              'value_dictionaries': Value_Dictionaries,
               'csv': Csv_File,
               'constant': Constant}
     default_style = 'value_lists'
@@ -189,7 +194,7 @@ class Vector_Factory():
     @classmethod
     def new(cls, data, name):
         if 'style' not in data:
-            vec_cls = cls.styles[cls.default_style]
+            vec_cls = cls._guess_style(data)
         else:
             vec_cls = cls.styles[data['style']]
         if len(data) == 1:
@@ -204,6 +209,20 @@ class Vector_Factory():
             pass
         v.initialise(d)
         return v
+    
+    @classmethod
+    def _guess_style(cls, data):
+        objs = []
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if k != 'labels':
+                    objs.append(v)
+            if all([isinstance(v, list) for v in objs]):
+                return Value_Lists
+            elif all([isinstance(v, dict) for v in objs]):
+                return Value_Dictionaries
+            else:
+                return Constant
             
     
 class Vectors():

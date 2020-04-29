@@ -252,7 +252,7 @@ class Test_Vector(unittest.TestCase):
         
 
 
-class Test_List_Vector(unittest.TestCase):
+class Test_Value_Lists(unittest.TestCase):
     def get_d_1(self):
         d = {'alias_1': [1, 2],
              'alias_2': [3, 4]}
@@ -260,16 +260,16 @@ class Test_List_Vector(unittest.TestCase):
     
     def test_transpose_dict(self):
         d = self.get_d_1()
-        v = automate.List_Vector('test_name')
+        v = automate.Value_Lists('test_name')
         d_test = v.transpose_dict(d)
         expected = [{'alias_1': 1, 'alias_2': 3}, {'alias_1': 2, 'alias_2': 4}]
         self.assertListEqual(d_test, expected)
     
-class Test_Dict_List_Vector(unittest.TestCase):
+class Test_Value_Dictionaries(unittest.TestCase):
 
     def test_int(self):
         d = {'a':  {'b': 1}}
-        v = automate.Dict_List_Vector('test_name')
+        v = automate.Value_Dictionaries('test_name')
         labels, d = v.setup(d)
         expected = [{'b': 1}]
         self.assertListEqual(d, expected)
@@ -277,12 +277,38 @@ class Test_Dict_List_Vector(unittest.TestCase):
     
     def test_vector(self):
         d = {'a':  {'b': [ 1,  2,  3]}}
-        v = automate.Dict_List_Vector('test_name')
+        v = automate.Value_Dictionaries('test_name')
         labels, d = v.setup(d)
         expected = [{'b': [1, 2, 3]}]
         self.assertListEqual(d, expected)
         self.assertListEqual(labels, ['a'])
-            
+
+class Test_Vector_Factory(unittest.TestCase):
+    def test_guess_style_value_lists(self):
+        d = {'alias_1': [1, 2],
+             'alias_2': [3, 4]}
+        res = automate.Vector_Factory._guess_style(d)
+        self.assertEqual(res, automate.Value_Lists)
+        
+    def test_guess_style_value_list(self):
+        d = {'alias_1': [1, 2]}
+        res = automate.Vector_Factory._guess_style(d)
+        self.assertEqual(res, automate.Value_Lists)
+        
+    def test_guess_style_value_dictionaries(self):
+        d = {'label_1': {'b': 1, 'c': 2},
+             'label_2': {'b': 2, 'c': 3}}
+        res = automate.Vector_Factory._guess_style(d)
+        self.assertEqual(res, automate.Value_Dictionaries)
+
+    def test_guess_style_constant(self):
+        d = {'a': 5,
+             'b': 'test',
+             'c': 5.4,
+             'd': [1, 2, 3]}
+        res = automate.Vector_Factory._guess_style(d)
+        self.assertEqual(res, automate.Constant)
+        
     
 class Test_Vectors(unittest.TestCase):
     def make_vectors(self):
