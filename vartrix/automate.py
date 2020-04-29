@@ -197,10 +197,6 @@ class Vector_Factory():
             vec_cls = cls._guess_style(data)
         else:
             vec_cls = cls.styles[data['style']]
-        if len(data) == 1:
-            for k, v in data.items():
-                if not isinstance(v, (list, dict)):
-                    vec_cls = cls.styles['constant']
         v = vec_cls(name)
         d = data.copy()
         try:
