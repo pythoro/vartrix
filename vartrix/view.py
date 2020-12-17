@@ -125,9 +125,9 @@ class View(dict):
         if self.dirty:
             self.refresh()
         
-    def get(self, key):
+    def get(self, key, *args):
         ''' Get a value '''
-        return self[key]
+        return dict.get(self, key, *args)
         
     def set(self, key, val):
         ''' Set a value 
