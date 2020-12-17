@@ -250,6 +250,54 @@ class Test_Vector(unittest.TestCase):
                     {'csv_vec': 'row_two'}]
         lst = v.get_label_lst()
         
+    def get_vec_lst(self):
+        """ A set of single values including a list"""
+        d = {'labels': ['a'],
+             'alias_1': [1],
+             'alias_2': [[2]]}
+        return automate.Vector_Factory.new(d, 'vec_1')
+
+    def test_incl_lst_labelled(self):
+        v = self.get_vec_lst()
+        expected = [{'alias_1': 1, 'alias_2': [2]}]
+        self.assertListEqual(v.data, expected)
+        self.assertListEqual(v.labels, ['a'])
+
+    def get_vec_lst_2(self):
+        """ A set of single values including a list, with no label"""
+        d = {'alias_1': [1],
+             'alias_2': [[2]]}
+        return automate.Vector_Factory.new(d, 'vec_1')
+
+    def test_incl_lst_unlabelled(self):
+        v = self.get_vec_lst_2()
+        expected = [{'alias_1': 1, 'alias_2': [2]}]
+        self.assertListEqual(v.data, expected)
+        self.assertListEqual(v.labels, [0])
+
+    def get_vec_lst_3(self):
+        """ A set of single values including a list, with no label"""
+        d = {'alias_1': 1,
+             'alias_2': [2]}
+        return automate.Vector_Factory.new(d, 'vec_1')
+
+    def test_incl_lst_unlabelled_2(self):
+        v = self.get_vec_lst_3()
+        expected = [{'alias_1': 1, 'alias_2': [2]}]
+        self.assertListEqual(v.data, expected)
+        self.assertListEqual(v.labels, [True])
+
+    def get_vec_lst_4(self):
+        """ A constant with a list """
+        d = {'style': 'constant',
+             'alias_1': [1]}
+        return automate.Vector_Factory.new(d, 'vec_1')
+
+    def test_incl_lst_unlabelled_3(self):
+        v = self.get_vec_lst_4()
+        expected = [{'alias_1': [1]}]
+        self.assertListEqual(v.data, expected)
+        self.assertListEqual(v.labels, ['[1]'])
 
 
 class Test_Value_Lists(unittest.TestCase):
@@ -317,11 +365,17 @@ class Test_Vector_Factory(unittest.TestCase):
         res = automate.Vector_Factory._guess_style(d)
         self.assertEqual(res, automate.Constant)
 
-    def test_guess_style_not_understood(self):
+    def test_guess_style_constant_2(self):
         d = {'a': 5,
              'b': 'test'}
-        with self.assertRaises(ValueError):
-            automate.Vector_Factory._guess_style(d)
+        res = automate.Vector_Factory._guess_style(d)
+        self.assertEqual(res, automate.Constant)
+
+    def test_guess_style_constant_3(self):
+        d = {'a': 5,
+             'b': [6, 7, 8]}
+        res = automate.Vector_Factory._guess_style(d)
+        self.assertEqual(res, automate.Constant)
         
         
     
@@ -348,6 +402,23 @@ class Test_Vectors(unittest.TestCase):
                                          {'vec_1': 'b', 'vec_2': 'c'},
                                          {'vec_1': 'b', 'vec_2': 'd'}])
 
+    def make_vectors_with_list_constant(self):
+        d = {'vec_1': {'style': 'constant',
+                       'alias_1': [1]},
+             'vec_2': {'labels': ['c', 'd'],
+                       'alias_3': [5, 6]}}
+        v = automate.Vectors(d)    
+        return v
+    
+    def not_test_loop(self):
+        v = self.make_vectors()
+        val_lst, label_lst = v.loop(['vec_1', 'vec_2'])
+        self.assertListEqual(val_lst, [{'alias_1': [1], 'alias_3': 5},
+                                       {'alias_1': [1], 'alias_3': 6}])
+        self.assertListEqual(label_lst, [{'vec_1': 'a', 'vec_2': 'c'},
+                                         {'vec_1': 'a', 'vec_2': 'd'},
+                                         {'vec_1': 'b', 'vec_2': 'c'},
+                                         {'vec_1': 'b', 'vec_2': 'd'}])
 
 class Test_Sequencer(unittest.TestCase):
     def get_s(self):

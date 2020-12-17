@@ -52,7 +52,10 @@ class Automator():
         if 'vectors' in data:
             vec_data.update(data['vectors'])
         if 'constants' in data:
-            vec_data.update(data['constants'])
+            ds = data['constants'].copy()
+            for k, d in ds.items():
+                d['style'] = 'constant'
+            vec_data.update(ds)
         s = Sequencer(data['sequences'], self.sets['aliases'], vec_data)
         safe_call('prepare', obj)
         for seq_name, seq_dct in s.all_sequences().items():
@@ -164,8 +167,11 @@ class Value_Dictionaries(Vector):
 
 class Constant(Vector):
     def setup(self, data):
-        k, v = data.copy().popitem()
-        labels = [v]
+        if len(data) == 1:
+            k, v = data.copy().popitem()
+            labels = [v]
+        else:
+            labels = [True]
         d = [data.copy()]
         return labels, d
 
@@ -220,7 +226,7 @@ class Vector_Factory():
             elif len(data) == 1:
                 return Constant
             else:
-                raise ValueError('Input style not understood: ' + str(data))
+                return Constant
             
     
 class Vectors():
