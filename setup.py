@@ -20,6 +20,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/pythoro/vartrix.git",
+    project_urls={
+        'Documentation': 'https://vartrix.readthedocs.io/en/latest/',
+        'Source': 'https://github.com/pythoro/vartrix.git',
+        'Tracker': 'https://github.com/pythoro/vartrix/issues',
+    },
     download_url="https://github.com/pythoro/vartrix/archive/v0.0.9.zip",
     packages=['vartrix'],
     keywords=['PARAMETERS', 'VARIABLES', 'PARAMETRIC', 'AUTOMATION', 'AUTOMATE'],
