@@ -5,7 +5,9 @@ Created on Mon Sep  9 17:05:43 2019
 @author: Reuben
 """
 
+import json
 import importlib
+from . import utils
 
 def is_importable(module_name):
     spec = importlib.util.find_spec(module_name)
@@ -116,8 +118,16 @@ class Xlsx(Handler):
         dct = {}
         for dotkey_cell, value_cell in zip(dotkey_cells, value_cells):
             value = value_cell.value
-            if isinstance(value, (str, float, int)):
-                dct[dotkey_cell.value] = value
+            if value is None:
+                continue
+            if isinstance(value, (float, int)):
+                processed_value = value
+            if isinstance(value, str):
+                if value[0] in ['"', "'", '[', '{']:
+                    processed_value = json.loads(value.replace('\'', '"'))
+                else:
+                    processed_value = value
+            dct[dotkey_cell.value] = processed_value
         return dct
     
     def _write_vals(self, dct, wb, dotkey_cells, value_cells):
@@ -125,9 +135,12 @@ class Xlsx(Handler):
             dotkey = dotkey_cell.value
             if not dotkey in dct:
                 continue
-            value = dct[dotkey]
+            value = utils.denumpify(dct[dotkey])
             if isinstance(value, (str, float, int)):
-                value_cell.value = value
+                write_value = value
+            elif isinstance(value, (list, dict)):
+                write_value = json.dumps(value)
+            value_cell.value = write_value
     
     def _get_cell_pairs(self, wb):
         dotkey_cells = self._get_cells(wb, 'dotkeys')
