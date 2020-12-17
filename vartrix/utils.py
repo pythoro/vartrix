@@ -21,21 +21,33 @@ class Factory():
         build_function (func): OPTIONAL: A function that takes the new
         instance object. If provided, the return value of the Factory is
         the return value of the function.
+        class_method (str): OPTIONAL: The name of a class method called
+        to instantiate the object.
+        default (str): OPTIONAL: An optional default value if the dotkey
+        is not present.
         
     Note:
         The class name pointed to by the dotkey must exist in the module,
         or a KeyError will be raised.
     '''
     
-    def __init__(self, name, container, dotkey, build_function=None):
+    def __init__(self, name, container, dotkey, build_function=None,
+                 class_method=None, default=None):
         self.container = container
         self.name = name
         self.dotkey = dotkey
         self.build_function = build_function
+        self._class_method = class_method
+        self._default = default
     
-    def new(self):
+    def new(self, *args, **kwargs):
         ''' Create a new instance based on the current dotkey value '''
-        cls_name = self.container[self.dotkey]
+        if self.dotkey in self.container:
+            cls_name = self.container[self.dotkey]
+        elif self._default is not None:
+            cls_name = self._default
+        else:
+            raise KeyError('Class name not provided by dotkey or default.')
         clsmembers = inspect.getmembers(sys.modules[self.name],
                                         inspect.isclass)
         clsdct = {t[0]: t[1] for t in clsmembers}
@@ -44,12 +56,14 @@ class Factory():
         except KeyError:
             raise KeyError('Class ' + str(cls_name) + ' not found in module '
                            + str(self.name))
-        if self.build_function is None:
-            return c()
-        else:
-            obj = c()
+        if self.build_function is not None:
+            obj = c(*args, **kwargs)
             return self.build_function(obj)
-        
+        elif self._class_method is not None:
+            method = getattr(c, self._class_method)
+            return method(*args, **kwargs)
+        else:
+            return c(*args, **kwargs)
         
 def _nest(key_list, val, dct=None):
     dct = {} if dct is None else dct
