@@ -27,8 +27,12 @@ class Manager():
     default_handler = 'yaml'
     
     def __init__(self):
-        self.handlers = {'yaml': Yaml(),
-                         'xlsx': Xlsx()}
+        handlers = {}
+        if IS_YAML:
+            handlers['yaml'] = Yaml()
+        if IS_XLSX:
+            handlers['xlsx'] = Xlsx()
+        self.handlers = handlers
         self.specified = None
         
     def add_handler(self, key, handler):
@@ -63,8 +67,8 @@ class Manager():
 class Handler():
     def __init__(self):
         if not is_importable(self._import_name):
-            raise ImportError("Package '" + self._package_name 
-                              + "' is required for class " + type(self))
+            raise ImportError("Package '" + self._import_name 
+                              + "' is required for class " + str(type(self)))
 
     def suitable(self, fname, **kwargs):
         passes = [fname.lower().endswith('.' + e.lower()) 
@@ -86,10 +90,20 @@ class Yaml(Handler):
             y = yml.YAML()
             y.dump(dict(dct), f)
             
-            
+
 class Xlsx(Handler):
     _import_name = 'openpyxl'    
     _valid_suffixes = ['xlsx']
+    
+    
+    def _unpack(self, obj):
+        lst = []
+        if isinstance(obj, (list, tuple)):
+            for subobj in obj:
+                lst.extend(self._unpack(subobj))
+        else:
+            lst.append(obj)
+        return lst
     
     def _get_cells(self, wb, range_name):
         named_range = wb.defined_names[range_name]
@@ -97,7 +111,7 @@ class Xlsx(Handler):
         for title, coord in named_range.destinations:
             ws = wb[title]
             tups = ws[coord]
-            lst = [t[0] for t in tups]
+            lst = self._unpack(tups)
             cells.extend(lst)
         return cells
     
@@ -134,7 +148,9 @@ class Xlsx(Handler):
         for key_cell, value_cell in zip(key_cells, value_cells):
             key = key_cell.value
             if not key in dct:
+                continue
             value = utils.denumpify(dct[key])
+            if value is None:
                 continue
             if isinstance(value, (str, float, int)):
                 write_value = value
