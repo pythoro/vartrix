@@ -425,8 +425,8 @@ class Test_Sequencer(unittest.TestCase):
         all_data = get_test_data()
         data = all_data['set_1']
         s = automate.Sequencer(data['sequences'],
-                               all_data['aliases'],
-                               data['vectors'])
+                               automate.Aliases(all_data['aliases']),
+                               automate.Vectors(data['vectors']))
         return s
     
     def test_seq_1(self):
@@ -545,8 +545,8 @@ class Test_Sequencer(unittest.TestCase):
         d = data['vectors']
         d.update(data['constants'])
         s = automate.Sequencer(data['sequences'],
-                               all_data['aliases'],
-                               d)
+                               automate.Aliases(all_data['aliases']),
+                               automate.Vectors(d))
         return s
     
     def test_seq_10(self):

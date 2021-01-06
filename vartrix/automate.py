@@ -25,8 +25,9 @@ def safe_call(method_name, obj, *args, **kwargs):
         pass
 
 class Automator():
-    def __init__(self, container, fname=None, sets=None):
+    def __init__(self, container, fname=None, sets=None, aliases=None):
         self.container = container
+        self._aliases = Aliases() if aliases is None else aliases
         if fname is not None and sets is None:
             self.sets = persist.load(fname)
         elif fname is None and sets is not None:
@@ -56,7 +57,10 @@ class Automator():
             for k, d in ds.items():
                 d['style'] = 'constant'
             vec_data.update(ds)
-        s = Sequencer(data['sequences'], self.sets['aliases'], vec_data)
+        aliases = self._aliases.copy()
+        aliases.update(self.sets['aliases'])
+        vectors = Vectors(vec_data)
+        s = Sequencer(data['sequences'], aliases, vectors)
         safe_call('prepare', obj)
         for seq_name, seq_dct in s.all_sequences().items():
             self.execute_sequence(seq_name, seq_dct, obj)
@@ -257,8 +261,8 @@ class Vectors():
 class Sequencer():
     def __init__(self, sequences, aliases, vectors):
         self.sequences = sequences
-        self.aliases = Aliases(aliases)
-        self.vectors = Vectors(vectors)
+        self.aliases = aliases
+        self.vectors = vectors
         
     def sequence(self, name):
         seq_dct = {}
