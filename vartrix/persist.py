@@ -101,22 +101,22 @@ class Xlsx(Handler):
             cells.extend(lst)
         return cells
     
-    def _check_rows(self, wb, dotkey_cells, value_cells):
-        if len(dotkey_cells) != len(value_cells):
+    def _check_rows(self, wb, key_cells, value_cells):
+        if len(key_cells) != len(value_cells):
             raise KeyError("The number of value cells does not match the "
-                           + "number of dotkey cells.")
+                           + "number of key cells.")
         
-        for dotkey_cell, value_cell in zip(dotkey_cells, value_cells):
-            if dotkey_cell.row != value_cell.row:
-                raise ValueError("The value cells and dotkeys do not align. " +
-                    "The rows for dotkeys must match the rows for values.")
-            if dotkey_cell.parent != value_cell.parent:
-                raise ValueError("The value cells and dotkeys do not align. " +
-                "The rows for dotkeys and values must be on the same sheet.")
+        for key_cell, value_cell in zip(key_cells, value_cells):
+            if key_cell.row != value_cell.row:
+                raise ValueError("The value cells and keys do not align. " +
+                    "The rows for keys must match the rows for values.")
+            if key_cell.parent != value_cell.parent:
+                raise ValueError("The value cells and keys do not align. " +
+                "The rows for keys and values must be on the same sheet.")
     
-    def _read_vals(self, wb, dotkey_cells, value_cells):
+    def _read_vals(self, wb, key_cells, value_cells):
         dct = {}
-        for dotkey_cell, value_cell in zip(dotkey_cells, value_cells):
+        for key_cell, value_cell in zip(key_cells, value_cells):
             value = value_cell.value
             if value is None:
                 continue
@@ -127,37 +127,38 @@ class Xlsx(Handler):
                     processed_value = json.loads(value.replace('\'', '"'))
                 else:
                     processed_value = value
-            dct[dotkey_cell.value] = processed_value
+            dct[key_cell.value] = processed_value
         return dct
     
-    def _write_vals(self, dct, wb, dotkey_cells, value_cells):
-        for dotkey_cell, value_cell in zip(dotkey_cells, value_cells):
-            dotkey = dotkey_cell.value
-            if not dotkey in dct:
+    def _write_vals(self, dct, wb, key_cells, value_cells):
+        for key_cell, value_cell in zip(key_cells, value_cells):
+            key = key_cell.value
+            if not key in dct:
+            value = utils.denumpify(dct[key])
                 continue
-            value = utils.denumpify(dct[dotkey])
             if isinstance(value, (str, float, int)):
                 write_value = value
             elif isinstance(value, (list, dict)):
                 write_value = json.dumps(value)
             value_cell.value = write_value
     
-    def _get_cell_pairs(self, wb):
-        dotkey_cells = self._get_cells(wb, 'dotkeys')
-        value_cells = self._get_cells(wb, 'values')
-        self._check_rows(wb, dotkey_cells, value_cells)
-        return dotkey_cells, value_cells
+    def _get_cell_pairs(self, wb, keys, values):
+        key_cells = self._get_cells(wb, keys)
+        value_cells = self._get_cells(wb, values)
+        self._check_rows(wb, key_cells, value_cells)
+        return key_cells, value_cells
     
-    def load(self, fname, **kwargs):
+    def load(self, fname, keys='dotkeys', values='values', **kwargs):
         wb = load_workbook(filename=fname)
-        dotkey_cells, value_cells = self._get_cell_pairs(wb)
-        dct = self._read_vals(wb, dotkey_cells, value_cells)
+        key_cells, value_cells = self._get_cell_pairs(wb, keys, values)
+        dct = self._read_vals(wb, key_cells, value_cells)
         return dct
     
-    def save(self, dct, fname, loadname, **kwargs):
+    def save(self, dct, fname, loadname, keys='dotkeys', values='values',
+             **kwargs):
         wb = load_workbook(filename=loadname)
-        dotkey_cells, value_cells = self._get_cell_pairs(wb)
-        self._write_vals(dct, wb, dotkey_cells, value_cells)
+        key_cells, value_cells = self._get_cell_pairs(wb, keys, values)
+        self._write_vals(dct, wb, key_cells, value_cells)
         wb.save(fname)
 
             
