@@ -142,6 +142,16 @@ class Container(dict):
         '''
         self._observers[safe_root(dotkey)].add(view)
 
+    def __contains__(self, key):
+        found = super().__contains__(key)
+        if found:
+            return True
+        try:
+            dct = self.get_dct(key)
+            return True
+        except KeyError:
+            return False
+
     def __missing__(self, key):
         try:
             ret = self.get_dct(key)

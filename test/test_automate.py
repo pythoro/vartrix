@@ -46,7 +46,7 @@ def get_test_data():
 class Automated():
     def __init__(self, set_name):
         dotkeys = ['alias']
-        self.params = View(namespace.get('test'), dotkeys)
+        self.params = View(get_c(), dotkeys)
         self.set_name = set_name
         self.prepare_sequence_names = []
         self.finish_sequence_names = []
