@@ -95,7 +95,15 @@ class Aliases(dict):
                 out[k] = v
         return out
     
+    def copy(self):
+        return Aliases(self)
     
+    def add_csv(self, fname, dotkey='dotkey', alias='alias', **kwargs):
+        df = pd.read_csv(fname, usecols=[dotkey, alias])
+        dct = {r[alias]: r[dotkey] for i, r in df.iterrows()}
+        self.update(dct)
+
+
 class Vector():
     ''' Subclass for different entry formats '''
     def __init__(self, name):
