@@ -170,6 +170,8 @@ class Container(dict):
                 if key[n] == '.':
                     k = key[n+1:]
                     out[k] = val
+        if len(out) == 0:
+            raise KeyError("'" + dotkey + "'")
         return out
 
     def update_observers(self, dotkey, val):
