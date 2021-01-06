@@ -161,15 +161,12 @@ class Container(dict):
         '''
         if is_root(dotkey):
             return self.copy()
-        n = len(dotkey)
         out = {}
+        s = dotkey + '.'  # Force it to be a dot
+        n = len(s)
         for key, val in self.items():
-            if key[:n] == dotkey and len(key) > n+1:
-                # Check it's definately a dot after the dotkey before adding it
-                # Otherwise it might add e.g. underscored dotkeys.
-                if key[n] == '.':
-                    k = key[n+1:]
-                    out[k] = val
+            if key.startswith(s):
+                out[key[n:]] = val
         if len(out) == 0:
             raise KeyError("'" + dotkey + "'")
         return out
