@@ -27,6 +27,8 @@ def get_bases(obj):
     bases = [dotkey(obj.__class__)]
     for base_class in obj.__class__.__bases__:
         bases.append(dotkey(base_class))
+    if 'object' in bases:
+        bases.remove('object')
     return bases
 
 
