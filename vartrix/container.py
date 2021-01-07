@@ -146,6 +146,8 @@ class Container(dict):
         found = super().__contains__(key)
         if found:
             return True
+        if is_root(key):
+            return False
         try:
             dct = self.get_dct(key)
             return True
