@@ -58,7 +58,8 @@ class Automator():
                 d['style'] = 'constant'
             vec_data.update(ds)
         aliases = self._aliases.copy()
-        aliases.update(self.sets['aliases'])
+        if 'aliases' in self.sets:
+            aliases.update(self.sets['aliases'])
         vectors = Vectors(vec_data)
         s = Sequencer(data['sequences'], aliases, vectors)
         safe_call('prepare', obj)
@@ -107,6 +108,8 @@ class Aliases(dict):
         dct = {r[alias]: r[dotkey] for i, r in df.iterrows()}
         self.update(dct)
 
+    def __missing__(self, key):
+        return key
 
 class Vector():
     ''' Subclass for different entry formats '''
@@ -191,7 +194,12 @@ class Csv_File(Vector):
     def setup(self, data):
         d = []
         full_filename = os.path.join(root, data['filename'])
-        df = pd.read_csv(full_filename, index_col=0)
+        try:
+            df = pd.read_csv(full_filename, index_col=0)
+        except FileNotFoundError:
+            raise FileNotFoundError("File '" + full_filename + "' does not "
+                "exist. To set the root directory, use " +
+                "vt.automate.set_root(path)")
         labels = list(df.index)
         for index, row in df.iterrows():
             d.append(row.to_dict())

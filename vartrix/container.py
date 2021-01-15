@@ -158,7 +158,7 @@ class Container(dict):
         try:
             ret = self.get_dct(key)
         except:
-            return super().__missing__()
+            raise KeyError("Key '" + str(key) + "' not found.")
         return ret
 
     def get_dct(self, dotkey):
