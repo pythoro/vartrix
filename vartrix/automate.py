@@ -41,13 +41,7 @@ class Automator():
         for vec_name, item_name in label_dct.items():
             print('   ' + (vec_name + ': ').ljust(25) + str(item_name))
         
-    def run(self, set_name, obj):
-        ''' Run an automation set 
-        
-        Args:
-            set_name (str): The name of the set to run
-            obj (object): The automated class instance.
-        '''
+    def get_sequencer(self, set_name):
         data = self.sets[set_name]
         vec_data = {}
         if 'vectors' in data:
@@ -62,6 +56,16 @@ class Automator():
             aliases.update(self.sets['aliases'])
         vectors = Vectors(vec_data)
         s = Sequencer(data['sequences'], aliases, vectors)
+        return s
+        
+    def run(self, set_name, obj):
+        ''' Run an automation set 
+        
+        Args:
+            set_name (str): The name of the set to run
+            obj (object): The automated class instance.
+        '''
+        s = self.get_sequencer(set_name)
         safe_call('prepare', obj)
         for seq_name, seq_dct in s.all_sequences().items():
             self.execute_sequence(seq_name, seq_dct, obj)
