@@ -297,7 +297,7 @@ class Test_Vector(unittest.TestCase):
         v = self.get_vec_lst_4()
         expected = [{'alias_1': [1]}]
         self.assertListEqual(v.data, expected)
-        self.assertListEqual(v.labels, ['[1]'])
+        self.assertListEqual(v.labels, [[1]])
 
 
 class Test_Value_Lists(unittest.TestCase):
