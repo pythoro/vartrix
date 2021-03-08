@@ -144,9 +144,11 @@ class Xlsx(Handler):
             dct[key_cell.value] = processed_value
         return dct
     
-    def _write_vals(self, dct, wb, key_cells, value_cells):
+    def _write_vals(self, dct, wb, key_cells, value_cells, aliases=None):
         for key_cell, value_cell in zip(key_cells, value_cells):
             key = key_cell.value
+            if aliases is not None:
+                key = aliases[key]
             if not key in dct:
                 continue
             value = utils.denumpify(dct[key])
@@ -164,17 +166,20 @@ class Xlsx(Handler):
         self._check_rows(wb, key_cells, value_cells)
         return key_cells, value_cells
     
-    def load(self, fname, keys='dotkeys', values='values', **kwargs):
+    def load(self, fname, keys='dotkeys', values='values', aliases=None,
+             **kwargs):
         wb = load_workbook(filename=fname)
         key_cells, value_cells = self._get_cell_pairs(wb, keys, values)
         dct = self._read_vals(wb, key_cells, value_cells)
+        if aliases is not None:
+            dct = aliases.translate(dct)
         return dct
     
     def save(self, dct, fname, loadname, keys='dotkeys', values='values',
-             **kwargs):
+             aliases=None, **kwargs):
         wb = load_workbook(filename=loadname)
         key_cells, value_cells = self._get_cell_pairs(wb, keys, values)
-        self._write_vals(dct, wb, key_cells, value_cells)
+        self._write_vals(dct, wb, key_cells, value_cells, aliases=aliases)
         wb.save(fname)
 
             
