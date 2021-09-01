@@ -18,5 +18,5 @@ from .namespace import Name_Space, get_container
 from .container import Container
 from .view import View
 from .automate import Automator, Aliases
-from .utils import Factory
+from .utils import Factory, Simple_Factory
 

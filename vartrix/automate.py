@@ -35,8 +35,12 @@ class Automator():
         else:
             raise AttributeError('Either fname or sets must be given.')
             
-    def show(self, method_name, seq_name, label_dct):
-        print('Executing "' + method_name + '" method in "' + seq_name +
+    def show(self, method_name, seq_name, label_dct, complete=None):
+        if complete is not None:
+            s = '{:0.2f}% '.format(complete*100)
+        else:
+            s = ''
+        print(s + 'Executing "' + method_name + '" method in "' + seq_name +
               '" sequence with:')
         for vec_name, item_name in label_dct.items():
             print('   ' + (vec_name + ': ').ljust(25) + str(item_name))
@@ -58,16 +62,22 @@ class Automator():
         s = Sequencer(data['sequences'], aliases, vectors)
         return s
         
-    def run(self, set_name, obj):
+    def run(self, set_name, obj, seq_name=None):
         ''' Run an automation set 
         
         Args:
             set_name (str): The name of the set to run
             obj (object): The automated class instance.
+            seq_name (str): [Optional] A specific sequence within the set
+                to run exclusively.
         '''
         s = self.get_sequencer(set_name)
         safe_call('prepare', obj)
-        for seq_name, seq_dct in s.all_sequences().items():
+        if seq_name is None:
+            for seq_name, seq_dct in s.all_sequences().items():
+                self.execute_sequence(seq_name, seq_dct, obj)
+        else:
+            seq_dct = s.sequence(seq_name)
             self.execute_sequence(seq_name, seq_dct, obj)
         safe_call('finish', obj)
 
@@ -84,11 +94,14 @@ class Automator():
         container = self.container
         safe_call('prepare_method', obj, method_name)
         method = getattr(obj, method_name)
+        n = len(val_list)
         with container.context(val_list[0]):
+            i = 0
             for val_dct, label_dct in zip(val_list, label_lst):
+                i += 1
                 container.dset(val_dct)
                 if settings.PRINT_UPDATES:
-                    self.show(method_name, seq_name, label_dct)
+                    self.show(method_name, seq_name, label_dct, i/n)
                 method(seq_name, val_dct, label_dct)
         safe_call('finish_method', obj, method_name)
         

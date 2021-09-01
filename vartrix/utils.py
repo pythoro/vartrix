@@ -64,7 +64,33 @@ class Factory():
             return method(*args, **kwargs)
         else:
             return c(*args, **kwargs)
+
+class Simple_Factory():
+    def __init__(self, name, build_function=None,
+                 class_method=None):
+        self.name = name
+        self.build_function = build_function
+        self._class_method = class_method
         
+    def new(self, cls_name, *args, **kwargs):
+        clsmembers = inspect.getmembers(sys.modules[self.name],
+                                        inspect.isclass)
+        clsdct = {t[0]: t[1] for t in clsmembers}
+        try:
+            c = clsdct[cls_name]
+        except KeyError:
+            raise KeyError('Class ' + str(cls_name) + ' not found in module '
+                           + str(self.name))
+        if self.build_function is not None:
+            obj = c(*args, **kwargs)
+            return self.build_function(obj)
+        elif self._class_method is not None:
+            method = getattr(c, self._class_method)
+            return method(*args, **kwargs)
+        else:
+            return c(*args, **kwargs)
+        
+    
 def _nest(key_list, val, dct=None):
     dct = {} if dct is None else dct
     if len(key_list) == 1:
