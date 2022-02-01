@@ -123,11 +123,15 @@ def flat(dct, base=''):
 def numpify(obj):
     if isinstance(obj, list):
         return np.array(obj)
+    if isinstance(obj, dict):
+        return {k: numpify(v) for k, v in obj.items()}
     else:
         return obj
     
 def denumpify(obj):
     if isinstance(obj, np.ndarray):
         return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: denumpify(v) for k, v in obj.items()}
     else:
         return obj
