@@ -109,6 +109,17 @@ def nested(dct):
         _nest(key_list, val, out_dct)
     return out_dct
 
+def flat(dct, base=''):
+    ''' Create a flat dictionary representation of nested dictionary '''
+    out_dct = {}
+    for k, v in dct.items():
+        dotkey = base + '.' + k
+        if isinstance(v, dict):
+            out_dct[dotkey] = flat(v, base=dotkey)
+        else:
+            out_dct[dotkey] = v
+    return out_dct
+
 def numpify(obj):
     if isinstance(obj, list):
         return np.array(obj)
