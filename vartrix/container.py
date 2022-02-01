@@ -56,7 +56,7 @@ class Container(dict):
         split = dotkey.split('.', 1)
         dct = self if dct is None else dct
         if len(split) == 1:
-            return dct[split]
+            return dct[split[0]]
         return self.get(split[1], dct[split[0]])
 
     def lget(self, key_list):
@@ -94,13 +94,13 @@ class Container(dict):
             if safe and split[0] not in dct:
                 raise KeyError('In safe mode, key ' + dotkey + ' must be present.')
             v = utils.denumpify(val)
-            dct[split] = v  # Set the value
+            dct[split[0]] = v  # Set the value
         else:
             if split[0] not in dct:
-                d = self.set(split[1], v, safe=safe, dct={})
+                d = self.set(split[1], val, safe=safe, dct={})
                 dct[split[0]] = d
             else:
-                self.set(split[1], v, safe=safe, dct=dct[split[0]])
+                self.set(split[1], val, safe=safe, dct=dct[split[0]])
     
     def lset(self, key_list, val, safe=False):
         ''' Set the value of a dotkey specified as a list 
@@ -130,9 +130,6 @@ class Container(dict):
             return True
         except KeyError:
             return False
-
-    def __getitem__(self, key):
-        return self.get(key)
 
     def __setitem__(self, key, val):
         return self.set(key, val)
