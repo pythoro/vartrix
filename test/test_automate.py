@@ -45,7 +45,6 @@ def get_test_data():
 
 class Automated():
     def __init__(self, set_name):
-        dotkeys = ['alias']
         self.params = View(get_c(), dotkeys)
         self.set_name = set_name
         self.prepare_sequence_names = []
@@ -78,10 +77,10 @@ class Automated():
         self.prepare_method_names.append(method_name)
 
     def append_history(self, seq_name, method_name):
-        self.alias_one_history[seq_name][method_name].append(self.params.one)
-        self.alias_two_history[seq_name][method_name].append(self.params.two)
-        self.alias_three_history[seq_name][method_name].append(self.params.three)
-        self.alias_four_history[seq_name][method_name].append(self.params.four)
+        self.alias_one_history[seq_name][method_name].append('alias.one')
+        self.alias_two_history[seq_name][method_name].append('alias.two')
+        self.alias_three_history[seq_name][method_name].append('alias.three')
+        self.alias_four_history[seq_name][method_name].append('alias.four')
 
     def method_a(self, seq_name, val_dct, label_dct):
         self.method_a_calls.append({'val_dct': val_dct,
@@ -154,10 +153,6 @@ class Test_Automator(unittest.TestCase):
         expected_four = {'seq_1': {'method_a': [17, 17, 17, 17], 'method_b': [], 'method_c': [], 'method_d': []}, 'seq_2': {'method_a': [4, 5, 4, 5, 4, 5], 'method_b': [17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17], 'method_c': [], 'method_d': []}, 'seq_3': {'method_a': [], 'method_b': [], 'method_c': [4, 5, 4, 5, 4, 5, 4, 5], 'method_d': []}, 'seq_4': {'method_a': [], 'method_b': [], 'method_c': [4, 4, 4, 5, 5, 5], 'method_d': []}}
         self.assertDictEqual(automated.alias_four_history, expected_four)
 
-
-
-class Test_Aliases(unittest.TestCase):
-    pass
 
 
 class Test_Vector(unittest.TestCase):
