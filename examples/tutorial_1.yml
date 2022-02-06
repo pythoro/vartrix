@@ -1,8 +1,6 @@
-A: 
-    apple: 5
-    banana: 7
-    grape: 11
-B: 
-    fig: 13
-    pear: 17
-    orange: 19
+A_apple: 5
+A_banana: 7
+A_grape: 11
+B_fig: 13
+B_pear: 17
+B_orange: 19

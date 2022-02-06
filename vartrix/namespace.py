@@ -17,7 +17,7 @@ class Name_Space(dict):
         return self.create(key)
     
     def create(self, key, dct=None):
-        new = self.obj_cls(name=key, dct=dct)
+        new = self.obj_cls(dct=dct)
         self[key] = new
         return new
     

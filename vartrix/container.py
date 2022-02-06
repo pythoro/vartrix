@@ -50,7 +50,7 @@ class Container(dict):
                 raise KeyError('In safe mode, key ' 
                                + key + ' must be present.')
         v = utils.denumpify(val)
-        dct[key] = v  # Set the value
+        self[key] = v  # Set the value
     
     def dset(self, dct, safe=False):
         ''' Set multiple values specified in a dictionary
@@ -102,3 +102,4 @@ class Container(dict):
     
     def to_dict(self):
         return dict(self)
+    

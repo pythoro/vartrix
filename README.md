@@ -69,13 +69,12 @@ ns['tutorial_1'].load(dct)
 ```
 
 
-### Views
-For large containers with multiple levels, it's much easier to deal with a View of a specific set of the dotkeys. Views allow the values for those dotkeys to be accessed without the preceeding levels of the key. For example:
+### Using parameters
+To get the current value of a key, simply use a dictionary-style get:
 
 ```python
-view_A = vartrix.View(ns['tutorial_1'], dotkeys='A')
-print(view_A)
-# {'apple': 5, 'banana': 7, 'grape': 11}
+container = ns['tutorial_1']
+container['A']
 ```
 
 Views have both dictionary-style key access and attribute-style access:
