@@ -33,6 +33,7 @@ class Container(dict):
 
     def __init__(self, dct=None):
         self._backup = {}
+        self._locks = set()
         if dct is not None:
             self.load(dct)
             
@@ -47,8 +48,11 @@ class Container(dict):
         '''
         if safe:
             if key not in self:
-                raise KeyError('In safe mode, key ' 
-                               + key + ' must be present.')
+                raise KeyError("In safe mode, key '" 
+                               + key + "' must be present.")
+            if key in self._locks:
+                raise KeyError("Key '" + key + "' was locked while setting "
+                               "in safe mode.")
         v = utils.denumpify(val)
         self[key] = v  # Set the value
     
@@ -63,10 +67,17 @@ class Container(dict):
         for key, val in dct.items():
             self.set(key, val, safe=safe)
 
+    def lock(self, key):
+        self._locks.add(key)
+
+    def unlock(self, key):
+        self._locks.remove(key)
+
     def load(self, dct):
         ''' Set the container data using a dictionary '''
         self.clear()
         self._backup.clear()
+        self._locks.clear()
         self.add(dct)
         
     def reset(self):
@@ -87,12 +98,19 @@ class Container(dict):
     
     @contextmanager
     def context(self, dct, safe=True):
-        ''' A context manager for temporary changes in values 
+        """ A context manager for temporary changes in values 
         
         Args:
             dct (dict): A dictionary of dotkey-value pairs.
-        '''
-        originals = {k: self[k] for k in dct.keys()}
+            safe (bool): [Optional] set to false to ignore locks. Keys 
+                must already exist in the container.
+            
+        """
+        try:
+            originals = {k: self[k] for k in dct.keys()}
+        except KeyError:
+            raise KeyError("Key '" + k + "' was not found. Keys must " +
+                           "already exist to use context.")
         self.dset(dct, safe=safe)
         yield self
         self.dset(originals, safe=safe)
