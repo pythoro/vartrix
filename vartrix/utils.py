@@ -91,6 +91,13 @@ class Simple_Factory():
             return c(*args, **kwargs)
         
     
+class Attrdict(dict):
+    def __new__(cls, *args, **kwargs):
+        d = super(Attr_Dict, cls).__new__(cls, *args, **kwargs)
+        d.__dict__ = d
+        return d
+
+
 def _nest(key_list, val, dct=None):
     dct = {} if dct is None else dct
     if len(key_list) == 1:
