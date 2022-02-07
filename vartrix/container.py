@@ -51,7 +51,7 @@ class Container(dict):
                 raise KeyError("In safe mode, key '" 
                                + key + "' must be present.")
             if key in self._locks:
-                raise KeyError("Key '" + key + "' was locked while setting "
+                raise ValueError("Key '" + key + "' was locked while setting "
                                "in safe mode.")
         v = utils.denumpify(val)
         self[key] = v  # Set the value
@@ -109,14 +109,19 @@ class Container(dict):
         try:
             originals = {k: self[k] for k in dct.keys()}
         except KeyError:
-            raise KeyError("Key '" + k + "' was not found. Keys must " +
-                           "already exist to use context.")
+            for k in dct.keys():
+                if k not in self:
+                    raise KeyError("Key '" + k + "' was missing. " +
+                           "Keys must already exist to use context.")
         self.dset(dct, safe=safe)
         yield self
         self.dset(originals, safe=safe)
     
     def copy(self):
-        return Container(dct=self)
+        new = Container(dct=self)
+        new._backup = self._backup.copy()
+        new._locks = self._locks.copy()
+        return new
     
     def to_dict(self):
         return dict(self)
