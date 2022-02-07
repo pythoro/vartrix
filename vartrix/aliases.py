@@ -6,6 +6,8 @@ Created on Sat Feb  5 20:38:43 2022
 """
 
 
+import pandas as pd
+
 class Aliases(dict):
        
     def translate(self, dct):
