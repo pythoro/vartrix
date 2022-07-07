@@ -125,8 +125,22 @@ class Aliases(dict):
         dct = {r[alias]: r[dotkey] for i, r in df.iterrows()}
         self.update(dct)
 
+    def check_csv(self, fname, dotkey='dotkey', alias='alias'):
+        df = pd.read_csv(fname, usecols=[dotkey, alias])
+        inds = df.duplicated(subset=['alias'])
+        if any(inds):
+            df2 = df.loc[inds]
+            raise KeyError('Duplate aliases: ', df2['alias'])
+            
     def __missing__(self, key):
         return key
+    
+    def canonical(self):
+        """ Return an Aliases with only last keys for duplicate values """
+        uniques_inv = {v: k for k, v in vt_aliases.items()}
+        uniques = {v: k for k, v in uniques_inv.items()}
+        return Aliases(uniques)
+    
 
 class Vector():
     ''' Subclass for different entry formats '''
