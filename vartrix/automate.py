@@ -9,20 +9,22 @@ import os
 import pandas as pd
 
 from . import persist, settings
+from .aliases import Aliases
 
 root = os.path.dirname(os.path.abspath(__file__))
 
 def set_root(new):
+    """ This shouldn't be done """
     global root
     root = new
     
-
 def safe_call(method_name, obj, *args, **kwargs):
     try:
         method = getattr(obj, method_name)
         method(*args, **kwargs)
     except AttributeError:
         pass
+
 
 class Automator():
     def __init__(self, container, fname=None, sets=None, aliases=None):
@@ -105,25 +107,6 @@ class Automator():
                 method(seq_name, val_dct, label_dct)
         safe_call('finish_method', obj, method_name)
         
-    
-class Aliases(dict):
-       
-    def translate(self, dct):
-        out = {}
-        for k, v in dct.items():
-            if k in self:
-                out[self[k]] = v
-            else:
-                out[k] = v
-        return out
-    
-    def copy(self):
-        return Aliases(self)
-    
-    def add_csv(self, fname, dotkey='dotkey', alias='alias', **kwargs):
-        df = pd.read_csv(fname, usecols=[dotkey, alias])
-        dct = {r[alias]: r[dotkey] for i, r in df.iterrows()}
-        self.update(dct)
 
     def check_csv(self, fname, dotkey='dotkey', alias='alias'):
         df = pd.read_csv(fname, usecols=[dotkey, alias])
@@ -132,8 +115,6 @@ class Aliases(dict):
             df2 = df.loc[inds]
             raise KeyError('Duplate aliases: ', df2['alias'])
             
-    def __missing__(self, key):
-        return key
     
     def canonical(self):
         """ Return an Aliases with only last keys for duplicate values """
@@ -141,7 +122,7 @@ class Aliases(dict):
         uniques = {v: k for k, v in uniques_inv.items()}
         return Aliases(uniques)
     
-
+    
 class Vector():
     ''' Subclass for different entry formats '''
     def __init__(self, name):

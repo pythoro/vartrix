@@ -91,6 +91,13 @@ class Simple_Factory():
             return c(*args, **kwargs)
         
     
+class Attrdict(dict):
+    def __new__(cls, *args, **kwargs):
+        d = super(Attr_Dict, cls).__new__(cls, *args, **kwargs)
+        d.__dict__ = d
+        return d
+
+
 def _nest(key_list, val, dct=None):
     dct = {} if dct is None else dct
     if len(key_list) == 1:
@@ -109,14 +116,29 @@ def nested(dct):
         _nest(key_list, val, out_dct)
     return out_dct
 
+def flat(dct, base=''):
+    ''' Create a flat dictionary representation of nested dictionary '''
+    out_dct = {}
+    for k, v in dct.items():
+        dotkey = base + '.' + k
+        if isinstance(v, dict):
+            out_dct[dotkey] = flat(v, base=dotkey)
+        else:
+            out_dct[dotkey] = v
+    return out_dct
+
 def numpify(obj):
     if isinstance(obj, list):
         return np.array(obj)
+    if isinstance(obj, dict):
+        return {k: numpify(v) for k, v in obj.items()}
     else:
         return obj
     
 def denumpify(obj):
     if isinstance(obj, np.ndarray):
         return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: denumpify(v) for k, v in obj.items()}
     else:
         return obj

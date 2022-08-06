@@ -17,30 +17,18 @@ def get_c():
     return c
 
 def get_c2():
-    d = {'a': {'b': 1, 'c': 2},
-         'd': {'e': 3, 'f': 4, 'g': {'h': 5, 'i': 6}}}
+    d = {'a.b': 1,
+         'a.c': 2,
+         'd.e': 3,
+         'd.f': 4,
+         'd.g.h': 5,
+         'd.g.i': 6,
+         }
     c = Container(d)
     return c
 
-def get_c2_underscore():
-    d = {'a': {'b': 1, 'c': 2},
-         'd': {'e': 3, 'f': 4, 'g': {'h': 5, 'i': 6}},
-         'd_': {'z': 55}}
-    c = Container(d)
-    return c
 
-class View_Mock():
-    def _view_update(self, key, val):
-        self.key = key
-        self.val = val
-        
-    def refresh(self):
-        self.refresh_val = True
 
-    def check_refresh(self):
-        if self.dirty:
-            self.refresh()
-        
 
 class Test_Container(unittest.TestCase):
     def test_instantiate(self):
@@ -52,19 +40,6 @@ class Test_Container(unittest.TestCase):
         c = Container(dct)
         self.assertDictEqual(dct, c)
 
-    def test_register_observer(self):
-        c = Container()
-        b = View_Mock()
-        c.register_observer('a', b)
-        self.assertIn(b, c._observers['a'])
-        
-    def test_update_observers(self):
-        c = Container()
-        b = View_Mock()
-        c.register_observer('a', b)
-        c.update_observers('a.test_key', 4)
-        self.assertEqual(b.key, 'test_key')
-        self.assertEqual(b.val, 4)    
     
     def test_dict_set_item(self):
         c = Container()
@@ -85,53 +60,11 @@ class Test_Container(unittest.TestCase):
         c.set('a.b', 6)
         self.assertEqual(c.get('a.b'), 6)
 
-    def test_get_dct_flat(self):
-        c = get_c2()
-        d = c.get_dct('a')
-        expected = {'b': 1, 'c': 2}
-        self.assertDictEqual(d, expected)
-        
-    def test_get_dct_nested(self):
-        c = get_c2()
-        d = c.get_dct('d')
-        expected = {'e': 3, 'f': 4, 'g.h': 5, 'g.i': 6}
-        self.assertDictEqual(d, expected)
-
-    def test_get_dct_nested_underscore(self):
-        c = get_c2_underscore()
-        d = c.get_dct('d')
-        expected = {'e': 3, 'f': 4, 'g.h': 5, 'g.i': 6}
-        self.assertDictEqual(d, expected)
-
-    def test_get_dct_underscore(self):
-        c = get_c2_underscore()
-        d = c.get_dct('d_')
-        expected = {'z': 55}
-        self.assertDictEqual(d, expected)
-
-    def test_lset(self):
-        c = Container()
-        c.lset(['a', 'b'], 6)
-        expected = {'a.b': 6}
-        self.assertDictEqual(c, expected)
-
-    def test_lget(self):
-        c = Container()
-        c.lset(['a', 'b'], 6)
-        self.assertEqual(c.lget(['a', 'b']), 6)
-        
     def test_dset(self):
         c = Container()
         dct = {'a.b': 6}
         c.dset(dct)
         self.assertDictEqual(c, dct)
-        
-    def test_nested(self):
-        c = get_c()
-        ret = c.nested()
-        expected = {'a': {'b': 5},
-                    'b': {'c': 7}}
-        self.assertDictEqual(ret, expected)
         
     def test_load(self):
         c = Container()
@@ -139,41 +72,15 @@ class Test_Container(unittest.TestCase):
         c.load(dct)
         self.assertDictEqual(dct, c)
         
-    def test_refresh_observer_on_load(self):
-        dct = {'a.b': 6}
-        c = Container(dct)
-        b = View_Mock()
-        c.register_observer('a', b)
-        dct2 = {'a.b': 7,
-                'a.e': 45}
-        c.load(dct2)
-        self.assertEqual(b.refresh_val, True)
-
-    def test_combine(self):
-        d1 = {'b': 5}
-        d2 = {'d': 7}
-        c1 = Container(d1)
-        c2 = Container(d2)
-        c = Container.combine({'c1': c1, 'c2': c2})
-        expected = {'c1.b': 5,
-                    'c2.d': 7}
-        self.assertEqual(c, expected)
-        
     def test_merge(self):
         d1 = {'a.b': 5}
         d2 = {'c.d': 7}
         c1 = Container(d1)
-        b1 = View_Mock()
-        c1.register_observer('a', b1)
         c2 = Container(d2)
-        b2 = View_Mock()
-        c2.register_observer('c', b2)
         c = Container.merge([c1, c2])
         expected = {'a.b': 5,
                     'c.d': 7}
         self.assertEqual(c, expected)
-        self.assertIn(b1, c._observers['a'])
-        self.assertIn(b2, c._observers['c'])
         
     def test_context(self):
         dct = {'a.b': 6, 'a.c': 7}
@@ -192,7 +99,12 @@ class Test_Container(unittest.TestCase):
     def test_reset(self):
         c = get_c2()
         c.set('z.c', 7)
+        c.set('d.f', 234)
         c.reset()
-        dct = {'a.b': 1, 'a.c': 2,
-             'd.e': 3, 'd.f': 4, 'd.g.h': 5, 'd.g.i': 6}
+        dct = {'a.b': 1,
+               'a.c': 2,
+               'd.e': 3,
+               'd.f': 4,
+               'd.g.h': 5,
+               'd.g.i': 6}
         self.assertDictEqual(dct, c)

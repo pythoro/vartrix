@@ -17,28 +17,24 @@ class Test_Name_Space(unittest.TestCase):
         ns = Name_Space(obj_cls=Container)
         container = ns.create('test')
         self.assertTrue(isinstance(container, Container))
-        self.assertEqual(container.name, 'test')
         
     def test_create_dct(self):
         ns = Name_Space(obj_cls=Container)
         dct = {'a.b': 5, 'c.d': 7}
         container = ns.create('test', dct=dct)
         self.assertTrue(isinstance(container, Container))
-        self.assertEqual(container.name, 'test')
         self.assertDictEqual(container, dct)
     
     def test_get_create(self):
         ns = Name_Space(obj_cls=Container)
         container = ns.get('test')
         self.assertTrue(isinstance(container, Container))
-        self.assertEqual(container.name, 'test')
         
     def test_get_dct_create(self):
         ns = Name_Space(obj_cls=Container)
         dct = {'a.b': 5, 'c.d': 7}
         container = ns.get('test', dct=dct)
         self.assertTrue(isinstance(container, Container))
-        self.assertEqual(container.name, 'test')
         self.assertDictEqual(container, dct)
 
     def test_get_repeated(self):
@@ -51,7 +47,6 @@ class Test_get_container(unittest.TestCase):
     def test_get_container_create(self):
         container = get_container('test')
         self.assertTrue(isinstance(container, Container))
-        self.assertEqual(container.name, 'test')
 
     def test_get_container_repeated(self):
         container1 = get_container('test2')
