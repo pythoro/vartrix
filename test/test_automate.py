@@ -11,7 +11,6 @@ import unittest
 import ruamel.yaml as yml
 
 from vartrix.container import Container
-from vartrix.view import View
 from vartrix.namespace import Name_Space
 from vartrix import automate
 
@@ -45,8 +44,8 @@ def get_test_data():
 
 class Automated():
     def __init__(self, set_name):
-        self.params = View(get_c(), dotkeys)
         self.set_name = set_name
+        self.params = container
         self.prepare_sequence_names = []
         self.finish_sequence_names = []
         self.prepare_method_names = []
@@ -77,10 +76,10 @@ class Automated():
         self.prepare_method_names.append(method_name)
 
     def append_history(self, seq_name, method_name):
-        self.alias_one_history[seq_name][method_name].append('alias.one')
-        self.alias_two_history[seq_name][method_name].append('alias.two')
-        self.alias_three_history[seq_name][method_name].append('alias.three')
-        self.alias_four_history[seq_name][method_name].append('alias.four')
+        self.alias_one_history[seq_name][method_name].append(self.params['alias.one'])
+        self.alias_two_history[seq_name][method_name].append(self.params['alias.two'])
+        self.alias_three_history[seq_name][method_name].append(self.params['alias.three'])
+        self.alias_four_history[seq_name][method_name].append(self.params['alias.four'])
 
     def method_a(self, seq_name, val_dct, label_dct):
         self.method_a_calls.append({'val_dct': val_dct,
