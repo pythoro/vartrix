@@ -25,48 +25,15 @@ def safe_call(method_name, obj, *args, **kwargs):
     except AttributeError:
         pass
 
-
-class Automator():
-    def __init__(self, container, data=None, aliases=None):
-        self._sets = {}
-        self._aliases = set_aliases(aliases)
-        self.container = container
-        if data is not None:
-            self.build(data)
-            
-    def set_automation_set(self, set_name, automation_set):
-        self._sets[set_name] = automation_set
-        
-    def set_aliases(self, aliases):
-        self._aliases = aliases
-        
-    def build(self, data):
-        d = data.copy()
-        try:
-            alias_data = d.pop['aliases']
-        except:
-            alias_data = {}
-        aliases = Aliases(alias_data)
-        self.set_aliases(aliases)
-        for set_name, set_data in d.items():
-            automation_set = Automation_Set()
-            automation_set.build(set_data, set_data)
-            self.set_automation_set(set_name, automation_set)
-        
-    def run(self, set_name, obj, seq_name=None):
-        automation_set = self._sets[set_name]
-        automation_set.run(container=self.container,
-                           obj=obj,
-                           seq_name=seq_name,
-                           aliases=self._aliases)
-            
     
 class Vector():
     ''' Subclass for different entry formats '''
-    def __init__(self, name):
+    def __init__(self, name, data=None):
         self.name =  name
         self.i = 0
         self.child = None
+        if data is not None:
+            self.initialise(data)
         
     def initialise(self, data):
         self.labels, self.data = self.setup(data)
@@ -75,6 +42,17 @@ class Vector():
     def setup(self, data):
         raise NotImplementedError
 
+    def values(self, typ='values'):
+        if typ == 'values':
+            return self.data
+        elif typ == 'labels':
+            return [{self.name: label} for label in self.labels]
+        else:
+            raise KeyError("Key must be 'keys' or 'labels'.")
+            
+    def get_label_lst(self):
+        return self.values(typ='labels')
+        
 
 class Value_Lists(Vector):
     def transpose_dict(self, dct):
@@ -137,22 +115,32 @@ class Csv_File(Vector):
 class Vectors():
     
     def __init__(self):
-        self._vectors = []
+        self._styles = {'value_lists': Value_Lists,
+                        'value_dictionaries': Value_Dictionaries,
+                        'csv': Csv_File,
+                        'constant': Constant}
+        self._vectors = {}
         
-    def add(self, vector):
-        self._vectors.append(vector)
+    
+    def __getitem__(self, key):
+        return self._vectors[key]
+    
+    def get_vector(self, key):
+        return self._vectors[key]
+        
+    def set_vector(self, key, vector):
+        self._vectors[key] = vector
+        
+    def set_style(self, key, style):
+        self._styles[key] = style
         
     def clear(self):
         self._vectors.clear()
     
     def _get_style(self, data):
         objs = []
-        styles = {'value_lists': Value_Lists,
-                  'value_dictionaries': Value_Dictionaries,
-                  'csv': Csv_File,
-                  'constant': Constant}
         if 'style' in data:
-            return styles[data['style']]
+            return self._styles[data['style']]
         if isinstance(data, dict):
             for k, v in data.items():
                 if k != 'labels':
@@ -181,16 +169,20 @@ class Vectors():
         self.clear()
         for vector_name, vec_data in data.items():
             vector = self.build_one(vec_data, vector_name)
-            self.add(vector)
+            self.set_vector(vector_name, vector)
             
     
 class Method():
     def __init__(self, name, vectors=None):
         self._name = name
-        self._vectors = []
         self.set_vectors(vectors)
-        
+    
+    @property
+    def name(self):
+        return self._name
+    
     def set_vectors(self, vectors):
+        vectors = [] if vectors is None else vectors
         self._vectors = vectors
     
     def add(self, vector):
@@ -198,34 +190,36 @@ class Method():
     
     def build(self, data, vectors):
         if not isinstance(data, list):
+            print('===')
+            print(self._name)
+            print(data)
             raise TypeError('data must be a list of vector names')
         for vector_name in data:
             self.add(vectors[vector_name])
     
-    def get_lst(self, vectors=None, keys='keys'):
+    def get_lst(self, vectors=None, typ='values'):
         vectors = self._vectors if vectors is None else vectors
         if len(vectors) > 1:
-            lst = self.get_lst(vectors=vectors[-1], keys=keys)
+            lst = self.get_lst(vectors=vectors[1:], typ=typ)
         else:
             lst = [{}]
-        vector = vectors[-1]
+        vector = vectors[0]
         out_lst = []
-        for k, value in vector.keyed_values():
-            key = k if keys == 'keys' else vector.name
+        for value in vector.values(typ=typ):
             for d in lst:
-                dct = {key: value}
+                dct = value.copy()
                 dct.update(d)
                 out_lst.append(dct)
         return out_lst
         
-    def execute(self, container, obj, aliases=None, info=info):
+    def execute(self, container, obj, aliases=None, info=None):
         info = {} if info is None else info
         info['method'] = self._name
         safe_call('prepare_method', obj, self._name)
         method = getattr(obj, self._name)
+        val_list = self.get_lst(typ='values')
+        label_lst = self.get_lst(typ='labels')
         n = len(val_list)
-        val_list = self._vectors.get_lst(keys='keys')
-        label_list = self._vectors.get_lst(keys='names')
         if aliases is not None:
             val_list = [aliases.translate(d) for d in val_list]
         with container.context(val_list[0]):
@@ -235,7 +229,7 @@ class Method():
                 container.dset(val_dct)
                 if settings.PRINT_UPDATES:
                     self.show(info, label_dct, i/n)
-                method(seq_name, val_dct, label_dct)
+                method(info['sequence'], val_dct, label_dct)
         safe_call('finish_method', obj, self._name)
         
     def show(self, info, label_dct, complete=None):
@@ -255,18 +249,24 @@ class Sequence():
     def __init__(self, name, methods=None):
         self._name = name
         self.set_methods(methods)
-        self.set_vectors(vectors)
         
     @property
     def name(self):
         return self._name
         
+    def __getitem__(self, key):
+        return self.methods[key]
+    
+    @property
+    def methods(self):
+        return {m.name: m for m in self._methods}
+    
     def set_methods(self, methods=None):
-        methods = [] if methods is None
+        methods = [] if methods is None else methods
         self._methods = methods
     
     def add(self, method):
-        self._methods.append(methods)
+        self._methods.append(method)
     
     def build(self, data, vectors):
         if not isinstance(data, dict):
@@ -282,17 +282,25 @@ class Sequence():
         info['sequence'] = self._name
         safe_call('prepare_sequence', obj, self._name)
         for method in self._methods:
-            method.execute(obj, aliases, info=info)
+            method.execute(container, obj, aliases, info=info)
         safe_call('finish_sequence', obj, self._name)
 
     
 class Automation_Set():
     def __init__(self, name, sequences=None):
-        self._sequences = []
+        self._name = name
         self.set_sequences(sequences)
     
     def set_sequences(self, sequences):
+        sequences = [] if sequences is None else sequences
         self._sequences = sequences
+    
+    def __getitem__(self, key):
+        return self.sequences[key]
+    
+    @property
+    def sequences(self):
+        return {s.name: s for s in self._sequences}
         
     def add(self, sequence):
         self._sequences.append(sequence)
@@ -317,7 +325,7 @@ class Automation_Set():
     
     @property
     def sequence_names(self):
-        return list([s.name for s in self.sequences)
+        return list([s.name for s in self.sequences])
    
     def all_sequences(self):
         out = {}
@@ -340,6 +348,42 @@ class Automation_Set():
             if seq_name is not None:
                 if sequence.name is not seq_name:
                     continue
-            s.execute(obj, aliases=aliases, info={'set': self._name})
+            sequence.execute(container, obj, aliases=aliases,
+                             info={'set': self._name})
         safe_call('finish', obj)        
 
+
+class Automator():
+    def __init__(self, container, data=None, aliases=None):
+        self._sets = {}
+        self.set_aliases(aliases)
+        self.container = container
+        if data is not None:
+            self.build(data)
+            
+    def set_automation_set(self, set_name, automation_set):
+        self._sets[set_name] = automation_set
+        
+    def set_aliases(self, aliases):
+        self._aliases = aliases
+        
+    def build(self, data):
+        d = data.copy()
+        try:
+            alias_data = d.pop('aliases')
+        except:
+            alias_data = {}
+        aliases = Aliases(alias_data)
+        self.set_aliases(aliases)
+        for set_name, set_data in d.items():
+            automation_set = Automation_Set(name=set_name)
+            automation_set.build(set_data)
+            self.set_automation_set(set_name, automation_set)
+        
+    def run(self, set_name, obj, seq_name=None):
+        automation_set = self._sets[set_name]
+        automation_set.run(container=self.container,
+                           obj=obj,
+                           seq_name=seq_name,
+                           aliases=self._aliases)
+            

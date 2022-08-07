@@ -12,7 +12,8 @@ import ruamel.yaml as yml
 
 from vartrix.container import Container
 from vartrix.namespace import Name_Space
-from vartrix import automate
+from vartrix import automate, persist
+from vartrix.aliases import Aliases
 
 base = {'alias.one': 5,
         'alias.two': 7,
@@ -116,7 +117,8 @@ class Test_Automator(unittest.TestCase):
         container = get_c()
         fname = get_fname()
         set_csv_root()
-        a = automate.Automator(container, fname)
+        data = persist.load(fname)
+        a = automate.Automator(container, data=data)
         automated = Automated('set_1')
         a.run('set_1', automated)
         
@@ -159,7 +161,8 @@ class Test_Vector(unittest.TestCase):
         d = {'labels': ['a', 'b'],
              'alias_1': [1, 2],
              'alias_2': [3, 4]}
-        return automate.Vector_Factory.new(d, 'vec_1')
+        vectors = automate.Vectors()
+        return vectors.build_one(data=d, name='vec_1')
     
     def test_init_labelled(self):
         v = self.get_vec_1()
@@ -169,20 +172,25 @@ class Test_Vector(unittest.TestCase):
         
     def test_get_lst_labelled(self):
         v = self.get_vec_1()
-        lst = v.get_lst()
+        method = automate.Method(name='test')
+        method.add(v)
+        lst = method.get_lst()
         self.assertListEqual(lst, [{'alias_1': 1, 'alias_2': 3},
                                    {'alias_1': 2, 'alias_2': 4}])
 
     def test_get_label_lst_labelled(self):
         v = self.get_vec_1()
-        lst = v.get_label_lst()
+        method = automate.Method(name='test')
+        method.add(v)
+        lst = method.get_lst(typ='labels')
         self.assertListEqual(lst, [{'vec_1': 'a'},
                                    {'vec_1': 'b'}])
 
     def get_vec_unlabelled(self):
         d = {'alias_1': [1, 2],
              'alias_2': [3, 4]}
-        return automate.Vector_Factory.new(d, 'vec_unlabelled')
+        vectors = automate.Vectors()
+        return vectors.build_one(data=d, name='vec_unlabelled')
     
     def test_init_unlabelled(self):
         v = self.get_vec_unlabelled()
@@ -192,13 +200,13 @@ class Test_Vector(unittest.TestCase):
         
     def test_get_lst_unlabelled(self):
         v = self.get_vec_unlabelled()
-        lst = v.get_lst()
+        lst = v.values()
         self.assertListEqual(lst, [{'alias_1': 1, 'alias_2': 3},
                                    {'alias_1': 2, 'alias_2': 4}])
 
     def test_get_label_lst_unlabelled(self):
         v = self.get_vec_unlabelled()
-        lst = v.get_label_lst()
+        lst = v.values(typ='labels')
         self.assertListEqual(lst, [{'vec_unlabelled': 0},
                                    {'vec_unlabelled': 1}])
 
@@ -207,13 +215,16 @@ class Test_Vector(unittest.TestCase):
         d = {'labels': ['c', 'd'],
              'alias_3': [5, 6],
              'alias_4': [7, 8]}
-        return automate.Vector_Factory.new(d, 'vec_2')
+        vectors = automate.Vectors()
+        return vectors.build_one(data=d, name='vec_2')
     
     def test_get_lst_nested(self):
         v = self.get_vec_1()
         v2 = self.get_vec_2()
-        v.set_child(v2)
-        lst = v.get_lst()
+        method = automate.Method(name='test')
+        method.add(v)
+        method.add(v2)
+        lst = method.get_lst()
         expected = [
             {'alias_1': 1, 'alias_2': 3, 'alias_3': 5, 'alias_4': 7},
             {'alias_1': 1, 'alias_2': 3, 'alias_3': 6, 'alias_4': 8},
@@ -224,8 +235,10 @@ class Test_Vector(unittest.TestCase):
     def test_get_label_lst_nested(self):
         v = self.get_vec_1()
         v2 = self.get_vec_2()
-        v.set_child(v2)
-        lst = v.get_label_lst()
+        method = automate.Method(name='test')
+        method.add(v)
+        method.add(v2)
+        lst = method.get_lst(typ='labels')
         expected = [{'vec_1': 'a', 'vec_2': 'c'},
                     {'vec_1': 'a', 'vec_2': 'd'},
                     {'vec_1': 'b', 'vec_2': 'c'},
@@ -235,21 +248,24 @@ class Test_Vector(unittest.TestCase):
     def test_csv(self):
         automate.root = os.path.dirname(os.path.abspath(__file__))
         dct = {'style': 'csv', 'filename': 'test_data.csv'}
-        v = automate.Vector_Factory.new(dct, 'csv_vec')
-        lst = v.get_lst()
+        vectors = automate.Vectors()
+        v = vectors.build_one(dct, 'csv_vec')
+        lst = v.values(typ='values')
         expected = [{'alias_1': 2, 'alias_2': 3},
                     {'alias_1': 5, 'alias_2': 7}]
         self.assertListEqual(lst, expected)
+        lst = v.values(typ='labels')
         expected = [{'csv_vec': 'row_one'},
                     {'csv_vec': 'row_two'}]
-        lst = v.get_label_lst()
+        self.assertListEqual(lst, expected)
         
     def get_vec_lst(self):
         """ A set of single values including a list"""
         d = {'labels': ['a'],
              'alias_1': [1],
              'alias_2': [[2]]}
-        return automate.Vector_Factory.new(d, 'vec_1')
+        vectors = automate.Vectors()
+        return vectors.build_one(d, 'vec_1')
 
     def test_incl_lst_labelled(self):
         v = self.get_vec_lst()
@@ -261,7 +277,8 @@ class Test_Vector(unittest.TestCase):
         """ A set of single values including a list, with no label"""
         d = {'alias_1': [1],
              'alias_2': [[2]]}
-        return automate.Vector_Factory.new(d, 'vec_1')
+        vectors = automate.Vectors()
+        return vectors.build_one(d, 'vec_1')
 
     def test_incl_lst_unlabelled(self):
         v = self.get_vec_lst_2()
@@ -273,7 +290,8 @@ class Test_Vector(unittest.TestCase):
         """ A set of single values including a list, with no label"""
         d = {'alias_1': 1,
              'alias_2': [2]}
-        return automate.Vector_Factory.new(d, 'vec_1')
+        vectors = automate.Vectors()
+        return vectors.build_one(d, 'vec_1')
 
     def test_incl_lst_unlabelled_2(self):
         v = self.get_vec_lst_3()
@@ -285,7 +303,8 @@ class Test_Vector(unittest.TestCase):
         """ A constant with a list """
         d = {'style': 'constant',
              'alias_1': [1]}
-        return automate.Vector_Factory.new(d, 'vec_1')
+        vectors = automate.Vectors()
+        return vectors.build_one(d, 'vec_1')
 
     def test_incl_lst_unlabelled_3(self):
         v = self.get_vec_lst_4()
@@ -306,6 +325,7 @@ class Test_Value_Lists(unittest.TestCase):
         d_test = v.transpose_dict(d)
         expected = [{'alias_1': 1, 'alias_2': 3}, {'alias_1': 2, 'alias_2': 4}]
         self.assertListEqual(d_test, expected)
+    
     
 class Test_Value_Dictionaries(unittest.TestCase):
     def test_int(self):
@@ -336,39 +356,39 @@ class Test_Constant(unittest.TestCase):
     
 
 
-class Test_Vector_Factory(unittest.TestCase):
+class Test_Vectors(unittest.TestCase):
     def test_guess_style_value_lists(self):
         d = {'alias_1': [1, 2],
              'alias_2': [3, 4]}
-        res = automate.Vector_Factory._guess_style(d)
+        res = automate.Vectors._guess_style(d)
         self.assertEqual(res, automate.Value_Lists)
         
     def test_guess_style_value_list(self):
         d = {'alias_1': [1, 2]}
-        res = automate.Vector_Factory._guess_style(d)
+        res = automate.Vectors._guess_style(d)
         self.assertEqual(res, automate.Value_Lists)
         
     def test_guess_style_value_dictionaries(self):
         d = {'label_1': {'b': 1, 'c': 2},
              'label_2': {'b': 2, 'c': 3}}
-        res = automate.Vector_Factory._guess_style(d)
+        res = automate.Vectors._guess_style(d)
         self.assertEqual(res, automate.Value_Dictionaries)
 
     def test_guess_style_constant(self):
         d = {'a': 5}
-        res = automate.Vector_Factory._guess_style(d)
+        res = automate.Vectors._guess_style(d)
         self.assertEqual(res, automate.Constant)
 
     def test_guess_style_constant_2(self):
         d = {'a': 5,
              'b': 'test'}
-        res = automate.Vector_Factory._guess_style(d)
+        res = automate.Vectors._guess_style(d)
         self.assertEqual(res, automate.Constant)
 
     def test_guess_style_constant_3(self):
         d = {'a': 5,
              'b': [6, 7, 8]}
-        res = automate.Vector_Factory._guess_style(d)
+        res = automate.Vectors._guess_style(d)
         self.assertEqual(res, automate.Constant)
         
         
@@ -381,12 +401,17 @@ class Test_Vectors(unittest.TestCase):
              'vec_2': {'labels': ['c', 'd'],
                        'alias_3': [5, 6],
                        'alias_4': [7, 8]}}
-        v = automate.Vectors(d)    
+        v = automate.Vectors()    
+        v.build(d)
         return v
     
     def test_loop(self):
         v = self.make_vectors()
-        val_lst, label_lst = v.loop(['vec_1', 'vec_2'])
+        method = automate.Method(name='test')
+        method.add(v['vec_1'])
+        method.add(v['vec_2'])
+        val_lst = method.get_lst(typ='values')
+        label_lst = method.get_lst(typ='labels')
         self.assertListEqual(val_lst, [{'alias_1': 1, 'alias_2': 3, 'alias_3': 5, 'alias_4': 7},
                                        {'alias_1': 1, 'alias_2': 3, 'alias_3': 6, 'alias_4': 8},
                                        {'alias_1': 2, 'alias_2': 4, 'alias_3': 5, 'alias_4': 7},
@@ -415,35 +440,44 @@ class Test_Vectors(unittest.TestCase):
                                          {'vec_1': 'b', 'vec_2': 'd'}])
 
 class Test_Sequencer(unittest.TestCase):
+    def setUp(self):
+        all_data = get_test_data()
+        self.aliases = Aliases(all_data['aliases'])
+    
     def get_s(self):
         all_data = get_test_data()
         data = all_data['set_1']
-        s = automate.Sequencer(data['sequences'],
-                               automate.Aliases(all_data['aliases']),
-                               automate.Vectors(data['vectors']))
+        s = automate.Automation_Set(name='set_1')
+        s.build(data=data)
         return s
     
     def test_seq_1(self):
         s = self.get_s()
-        sd = s.sequence('seq_1')
-        expected = {'method_a': {'val_list':
-                                    [{'alias.one': 0},
-                                     {'alias.one': 2},
-                                     {'alias.one': 3},
-                                     {'alias.one': 4}],
-                                'label_lst': 
-                                    [{'vec_1': 0},
-                                     {'vec_1': 2},
-                                     {'vec_1': 3},
-                                     {'vec_1': 4}]}}
-        self.assertDictEqual(sd, expected)
+        seq = s['seq_1']
+        method = seq['method_a']
+        self.assertEqual(method.name, 'method_a')
+        val_lst = method.get_lst(typ='values')
+        val_lst = [self.aliases.translate(d) for d in val_lst]
+        expected = [{'alias.one': 0},
+                    {'alias.one': 2},
+                    {'alias.one': 3},
+                    {'alias.one': 4}]
+        self.assertListEqual(val_lst, expected)
+        label_lst = method.get_lst(typ='labels')
+        expected = [{'vec_1': 0},
+                    {'vec_1': 2},
+                    {'vec_1': 3},
+                    {'vec_1': 4}]
+        self.assertListEqual(label_lst, expected)
         
     def test_seq_2(self):
         s = self.get_s()
-        sd = s.sequence('seq_2')
-        expected = {
-            'method_b': {
-                'val_list': [
+        seq = s['seq_2']
+        method_a = seq['method_a']
+        method_b = seq['method_b']
+        val_lst = method_b.get_lst(typ='values')
+        val_lst = [self.aliases.translate(d) for d in val_lst]
+        expected = [
                     {'alias.one': 0, 'alias.two': 2, 'alias.three': 6},
                     {'alias.one': 0, 'alias.two': 3, 'alias.three': 7},
                     {'alias.one': 0, 'alias.two': 4, 'alias.three': 8},
@@ -455,8 +489,10 @@ class Test_Sequencer(unittest.TestCase):
                     {'alias.one': 3, 'alias.two': 4, 'alias.three': 8},
                     {'alias.one': 4, 'alias.two': 2, 'alias.three': 6},
                     {'alias.one': 4, 'alias.two': 3, 'alias.three': 7},
-                    {'alias.one': 4, 'alias.two': 4, 'alias.three': 8}],
-                'label_lst': [
+                    {'alias.one': 4, 'alias.two': 4, 'alias.three': 8}]
+        self.assertListEqual(val_lst, expected)
+        label_lst = method_b.get_lst(typ='labels')
+        expected = [
                     {'vec_1': 0, 'vec_2': 'a'},
                     {'vec_1': 0, 'vec_2': 'b'},
                     {'vec_1': 0, 'vec_2': 'c'},
@@ -468,30 +504,36 @@ class Test_Sequencer(unittest.TestCase):
                     {'vec_1': 3, 'vec_2': 'c'},
                     {'vec_1': 4, 'vec_2': 'a'},
                     {'vec_1': 4, 'vec_2': 'b'},
-                    {'vec_1': 4, 'vec_2': 'c'}]}, 
-            'method_a': {'val_list': [
+                    {'vec_1': 4, 'vec_2': 'c'}]
+        self.assertListEqual(label_lst, expected)
+        val_lst = method_a.get_lst(typ='values')
+        val_lst = [self.aliases.translate(d) for d in val_lst]
+        expected = [
                     {'alias.two': 2, 'alias.three': 6, 'alias.four': 4},
                     {'alias.two': 2, 'alias.three': 6, 'alias.four': 5},
                     {'alias.two': 3, 'alias.three': 7, 'alias.four': 4},
                     {'alias.two': 3, 'alias.three': 7, 'alias.four': 5},
                     {'alias.two': 4, 'alias.three': 8, 'alias.four': 4},
-                    {'alias.two': 4, 'alias.three': 8, 'alias.four': 5}],
-                'label_lst': [
+                    {'alias.two': 4, 'alias.three': 8, 'alias.four': 5}]
+        self.assertListEqual(val_lst, expected)
+        label_lst = method_a.get_lst(typ='labels')
+        expected = [
                     {'vec_2': 'a', 'vec_3': 'four'},
                     {'vec_2': 'a', 'vec_3': 'five'},
                     {'vec_2': 'b', 'vec_3': 'four'},
                     {'vec_2': 'b', 'vec_3': 'five'},
                     {'vec_2': 'c', 'vec_3': 'four'},
-                    {'vec_2': 'c', 'vec_3': 'five'}]}}
-        self.assertDictEqual(sd, expected)
+                    {'vec_2': 'c', 'vec_3': 'five'}]
+        self.assertListEqual(label_lst, expected)
         
     
     def test_seq_3(self):
         s = self.get_s()
-        sd = s.sequence('seq_3')
-        expected = {
-            'method_c': {
-                'val_list': [
+        seq = s['seq_3']
+        method_c = seq['method_c']
+        val_lst = method_c.get_lst(typ='values')
+        val_lst = [self.aliases.translate(d) for d in val_lst]
+        expected = [
                     {'alias.one': 0, 'alias.four': 4},
                     {'alias.one': 0, 'alias.four': 5},
                     {'alias.one': 2, 'alias.four': 4},
@@ -499,8 +541,10 @@ class Test_Sequencer(unittest.TestCase):
                     {'alias.one': 3, 'alias.four': 4},
                     {'alias.one': 3, 'alias.four': 5},
                     {'alias.one': 4, 'alias.four': 4},
-                    {'alias.one': 4, 'alias.four': 5}],
-                'label_lst': [
+                    {'alias.one': 4, 'alias.four': 5}]
+        self.assertListEqual(val_lst, expected)
+        label_lst = method_c.get_lst(typ='labels')
+        expected = [
                     {'vec_1': 0, 'vec_3': 'four'},
                     {'vec_1': 0, 'vec_3': 'five'},
                     {'vec_1': 2, 'vec_3': 'four'},
@@ -508,63 +552,69 @@ class Test_Sequencer(unittest.TestCase):
                     {'vec_1': 3, 'vec_3': 'four'},
                     {'vec_1': 3, 'vec_3': 'five'},
                     {'vec_1': 4, 'vec_3': 'four'},
-                    {'vec_1': 4, 'vec_3': 'five'}]}}
-        self.assertDictEqual(sd, expected)
+                    {'vec_1': 4, 'vec_3': 'five'}]
+        self.assertListEqual(label_lst, expected)
         
 
     def test_seq_4(self):
         s = self.get_s()
-        sd = s.sequence('seq_4')
-        expected = {
-            'method_c': {
-                'val_list': [
+        seq = s['seq_4']
+        method_c = seq['method_c']
+        val_lst = method_c.get_lst(typ='values')
+        val_lst = [self.aliases.translate(d) for d in val_lst]
+        expected = [
                     {'alias.four': 4, 'alias.one': 11, 'alias.two': 12},
                     {'alias.four': 4, 'alias.one': 13, 'alias.two': 14},
                     {'alias.four': 4, 'alias.one': 14, 'alias.two': 16},
                     {'alias.four': 5, 'alias.one': 11, 'alias.two': 12},
                     {'alias.four': 5, 'alias.one': 13, 'alias.two': 14},
-                    {'alias.four': 5, 'alias.one': 14, 'alias.two': 16}],
-                'label_lst': [
+                    {'alias.four': 5, 'alias.one': 14, 'alias.two': 16}]
+        self.assertListEqual(val_lst, expected)
+        label_lst = method_c.get_lst(typ='labels')
+        expected = [
                     {'vec_3': 'four', 'vec_4': 'a'},
                     {'vec_3': 'four', 'vec_4': 'b'},
                     {'vec_3': 'four', 'vec_4': 'c'},
                     {'vec_3': 'five', 'vec_4': 'a'},
                     {'vec_3': 'five', 'vec_4': 'b'},
-                    {'vec_3': 'five', 'vec_4': 'c'}]}}
-        self.assertDictEqual(sd, expected)
+                    {'vec_3': 'five', 'vec_4': 'c'}]
+        self.assertListEqual(label_lst, expected)
         
     def get_s2(self):
         all_data = get_test_data()
         data = all_data['set_2']
-        d = data['vectors']
-        d.update(data['constants'])
-        s = automate.Sequencer(data['sequences'],
-                               automate.Aliases(all_data['aliases']),
-                               automate.Vectors(d))
+        s = automate.Automation_Set(name='set_2')
+        s.build(data=data)
         return s
     
     def test_seq_10(self):
         s = self.get_s2()
-        sd = s.sequence('seq_10')
-        expected = {
-            'method_a': {
-                'val_list': [
-                    {'alias.one': 5, 'alias.two': 7}],
-                'label_lst': [
-                    {'const_1': 5, 'const_2': 7}]}}
-        self.assertDictEqual(sd, expected)
+        seq = s['seq_10']
+        method = seq['method_a']
+        val_lst = method.get_lst(typ='values')
+        val_lst = [self.aliases.translate(d) for d in val_lst]
+        expected = [
+            {'alias.one': 5, 'alias.two': 7}]
+        self.assertListEqual(val_lst, expected)
+        label_lst = method.get_lst(typ='labels')
+        expected = [
+            {'const_1': 5, 'const_2': 7}]
+        self.assertListEqual(label_lst, expected)
         
     def test_seq_11(self):
         s = self.get_s2()
-        sd = s.sequence('seq_11')
-        expected = {
-            'method_a': {
-                'val_list': [
+        seq = s['seq_11']
+        method = seq['method_a']
+        val_lst = method.get_lst(typ='values')
+        val_lst = [self.aliases.translate(d) for d in val_lst]
+        expected = [
                     {'alias.one': 5, 'alias.three': 1},
                     {'alias.one': 5, 'alias.three': 2},
-                    {'alias.one': 5, 'alias.three': 3}],
-                'label_lst': [
+                    {'alias.one': 5, 'alias.three': 3}]
+        self.assertListEqual(val_lst, expected)
+        label_lst = method.get_lst(typ='labels')
+        expected = [
                     {'const_1': 5, 'vec_1': 1},
                     {'const_1': 5, 'vec_1': 2},
-                    {'const_1': 5, 'vec_1': 3}]}}
-        self.assertDictEqual(sd, expected)
+                    {'const_1': 5, 'vec_1': 3}]
+        self.assertListEqual(label_lst, expected)
