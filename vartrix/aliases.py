@@ -8,6 +8,21 @@ Created on Sat Feb  5 20:38:43 2022
 
 import pandas as pd
 
+
+def check_csv(fname, dotkey='dotkey', alias='alias'):
+    df = pd.read_csv(fname, usecols=[dotkey, alias])
+    inds = df.duplicated(subset=['alias'])
+    if any(inds):
+        df2 = df.loc[inds]
+        raise KeyError('Duplate aliases: ', df2['alias'])
+
+def canonical(aliases):
+    """ Return an Aliases with only last keys for duplicate values """
+    uniques_inv = {v: k for k, v in aliases.items()}
+    uniques = {v: k for k, v in uniques_inv.items()}
+    return Aliases(uniques)
+
+
 class Aliases(dict):
        
     def translate(self, dct):

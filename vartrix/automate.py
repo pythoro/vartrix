@@ -8,7 +8,7 @@ Created on Mon Aug 26 22:12:43 2019
 import os
 import pandas as pd
 
-from . import persist, settings
+from . import settings
 from .aliases import Aliases
 
 root = os.path.dirname(os.path.abspath(__file__))
@@ -27,101 +27,39 @@ def safe_call(method_name, obj, *args, **kwargs):
 
 
 class Automator():
-    def __init__(self, container, fname=None, sets=None, aliases=None):
+    def __init__(self, container, data=None, aliases=None):
+        self._sets = {}
+        self._aliases = set_aliases(aliases)
         self.container = container
-        self._aliases = Aliases() if aliases is None else aliases
-        if fname is not None and sets is None:
-            self.sets = persist.load(fname)
-        elif fname is None and sets is not None:
-            self.sets = sets
-        else:
-            raise AttributeError('Either fname or sets must be given.')
+        if data is not None:
+            self.build(data)
             
-    def show(self, method_name, seq_name, label_dct, complete=None):
-        if complete is not None:
-            s = '{:0.2f}% '.format(complete*100)
-        else:
-            s = ''
-        print(s + 'Executing "' + method_name + '" method in "' + seq_name +
-              '" sequence with:')
-        for vec_name, item_name in label_dct.items():
-            print('   ' + (vec_name + ': ').ljust(25) + str(item_name))
+    def set_automation_set(self, set_name, automation_set):
+        self._sets[set_name] = automation_set
         
-    def get_sequencer(self, set_name):
-        data = self.sets[set_name]
-        vec_data = {}
-        if 'vectors' in data:
-            vec_data.update(data['vectors'])
-        if 'constants' in data:
-            ds = data['constants'].copy()
-            for k, d in ds.items():
-                d['style'] = 'constant'
-            vec_data.update(ds)
-        aliases = self._aliases.copy()
-        if 'aliases' in self.sets:
-            aliases.update(self.sets['aliases'])
-        vectors = Vectors(vec_data)
-        s = Sequencer(data['sequences'], aliases, vectors)
-        return s
+    def set_aliases(self, aliases):
+        self._aliases = aliases
+        
+    def build(self, data):
+        d = data.copy()
+        try:
+            alias_data = d.pop['aliases']
+        except:
+            alias_data = {}
+        aliases = Aliases(alias_data)
+        self.set_aliases(aliases)
+        for set_name, set_data in d.items():
+            automation_set = Automation_Set()
+            automation_set.build(set_data, set_data)
+            self.set_automation_set(set_name, automation_set)
         
     def run(self, set_name, obj, seq_name=None):
-        ''' Run an automation set 
-        
-        Args:
-            set_name (str): The name of the set to run
-            obj (object): The automated class instance.
-            seq_name (str): [Optional] A specific sequence within the set
-                to run exclusively.
-        '''
-        s = self.get_sequencer(set_name)
-        safe_call('prepare', obj)
-        if seq_name is None:
-            for seq_name, seq_dct in s.all_sequences().items():
-                self.execute_sequence(seq_name, seq_dct, obj)
-        else:
-            seq_dct = s.sequence(seq_name)
-            self.execute_sequence(seq_name, seq_dct, obj)
-        safe_call('finish', obj)
-
-    def execute_sequence(self, seq_name, seq_dct, obj):
-        safe_call('prepare_sequence', obj, seq_name)
-        for method_name, dct in seq_dct.items():
-            self.execute_method(method_name, seq_name,
-                                dct['val_list'],
-                                dct['label_lst'],
-                                obj)
-        safe_call('finish_sequence', obj, seq_name)
-
-    def execute_method(self, method_name, seq_name, val_list, label_lst, obj):
-        container = self.container
-        safe_call('prepare_method', obj, method_name)
-        method = getattr(obj, method_name)
-        n = len(val_list)
-        with container.context(val_list[0]):
-            i = 0
-            for val_dct, label_dct in zip(val_list, label_lst):
-                i += 1
-                container.dset(val_dct)
-                if settings.PRINT_UPDATES:
-                    self.show(method_name, seq_name, label_dct, i/n)
-                method(seq_name, val_dct, label_dct)
-        safe_call('finish_method', obj, method_name)
-        
-
-    def check_csv(self, fname, dotkey='dotkey', alias='alias'):
-        df = pd.read_csv(fname, usecols=[dotkey, alias])
-        inds = df.duplicated(subset=['alias'])
-        if any(inds):
-            df2 = df.loc[inds]
-            raise KeyError('Duplate aliases: ', df2['alias'])
+        automation_set = self._sets[set_name]
+        automation_set.run(container=self.container,
+                           obj=obj,
+                           seq_name=seq_name,
+                           aliases=self._aliases)
             
-    
-    def canonical(self):
-        """ Return an Aliases with only last keys for duplicate values """
-        uniques_inv = {v: k for k, v in vt_aliases.items()}
-        uniques = {v: k for k, v in uniques_inv.items()}
-        return Aliases(uniques)
-    
     
 class Vector():
     ''' Subclass for different entry formats '''
@@ -136,31 +74,7 @@ class Vector():
     
     def setup(self, data):
         raise NotImplementedError
-        
-    def set_child(self, vector):
-        self.child = vector
-        
-    def get_lst(self, lst=None, d=None):
-        lst = [] if lst is None else lst
-        d = {} if d is None else d
-        for dct in self.data:
-            d.update(dct)
-            if self.child is not None:
-                self.child.get_lst(lst, d)
-            else:
-                lst.append(d.copy())
-        return lst
-    
-    def get_label_lst(self, lst=None, d=None):
-        lst = [] if lst is None else lst
-        d = {} if d is None else d
-        for label in self.labels:
-            d[self.name] = label
-            if self.child is not None:
-                self.child.get_label_lst(lst, d)
-            else:
-                lst.append(d.copy())
-        return lst
+
 
 class Value_Lists(Vector):
     def transpose_dict(self, dct):
@@ -192,6 +106,7 @@ class Value_Dictionaries(Vector):
             d.append(dct)
         return labels, d
 
+
 class Constant(Vector):
     def setup(self, data):
         if len(data) == 1:
@@ -201,6 +116,7 @@ class Constant(Vector):
             labels = [True]
         d = [data.copy()]
         return labels, d
+
 
 class Csv_File(Vector):
     def setup(self, data):
@@ -218,35 +134,25 @@ class Csv_File(Vector):
         return labels, d
 
     
-class Vector_Factory():
-    styles = {'value_lists': Value_Lists,
-              'value_dictionaries': Value_Dictionaries,
-              'csv': Csv_File,
-              'constant': Constant}
-    default_style = 'value_lists'
-
-    @classmethod
-    def set_style(cls, style_name, vec_cls):
-        cls.styles[style_name] = vec_cls
+class Vectors():
     
-    @classmethod
-    def new(cls, data, name):
-        if 'style' not in data:
-            vec_cls = cls._guess_style(data)
-        else:
-            vec_cls = cls.styles[data['style']]
-        v = vec_cls(name)
-        d = data.copy()
-        try:
-            d.pop('style')
-        except KeyError:
-            pass
-        v.initialise(d)
-        return v
+    def __init__(self):
+        self._vectors = []
+        
+    def add(self, vector):
+        self._vectors.append(vector)
+        
+    def clear(self):
+        self._vectors.clear()
     
-    @classmethod
-    def _guess_style(cls, data):
+    def _get_style(self, data):
         objs = []
+        styles = {'value_lists': Value_Lists,
+                  'value_dictionaries': Value_Dictionaries,
+                  'csv': Csv_File,
+                  'constant': Constant}
+        if 'style' in data:
+            return styles[data['style']]
         if isinstance(data, dict):
             for k, v in data.items():
                 if k != 'labels':
@@ -259,50 +165,181 @@ class Vector_Factory():
                 return Constant
             else:
                 return Constant
+
+    def build_one(self, data, name):
+        vec_cls = self._get_style(data)
+        v = vec_cls(name)
+        d = data.copy()
+        try:
+            d.pop('style')
+        except KeyError:
+            pass
+        v.initialise(d)
+        return v
+    
+    def build(self, data):
+        self.clear()
+        for vector_name, vec_data in data.items():
+            vector = self.build_one(vec_data, vector_name)
+            self.add(vector)
             
     
-class Vectors():
-    def __init__(self, data):
-        self.data = data
+class Method():
+    def __init__(self, name, vectors=None):
+        self._name = name
+        self._vectors = []
+        self.set_vectors(vectors)
+        
+    def set_vectors(self, vectors):
+        self._vectors = vectors
     
-    def loop(self, v_names):
-        root = None
-        vectors = {k: Vector_Factory.new(v, k) for k, v in self.data.items()}
-        for v_name in v_names:
-            if root is None:
-                root = vectors[v_name]
-                current = vectors[v_name]
-            else:
-                current.set_child(vectors[v_name])
-                current = vectors[v_name]
-        return root.get_lst(), root.get_label_lst()
+    def add(self, vector):
+        self._vectors.append(vector)
+    
+    def build(self, data, vectors):
+        if not isinstance(data, list):
+            raise TypeError('data must be a list of vector names')
+        for vector_name in data:
+            self.add(vectors[vector_name])
+    
+    def get_lst(self, vectors=None, keys='keys'):
+        vectors = self._vectors if vectors is None else vectors
+        if len(vectors) > 1:
+            lst = self.get_lst(vectors=vectors[-1], keys=keys)
+        else:
+            lst = [{}]
+        vector = vectors[-1]
+        out_lst = []
+        for k, value in vector.keyed_values():
+            key = k if keys == 'keys' else vector.name
+            for d in lst:
+                dct = {key: value}
+                dct.update(d)
+                out_lst.append(dct)
+        return out_lst
+        
+    def execute(self, container, obj, aliases=None, info=info):
+        info = {} if info is None else info
+        info['method'] = self._name
+        safe_call('prepare_method', obj, self._name)
+        method = getattr(obj, self._name)
+        n = len(val_list)
+        val_list = self._vectors.get_lst(keys='keys')
+        label_list = self._vectors.get_lst(keys='names')
+        if aliases is not None:
+            val_list = [aliases.translate(d) for d in val_list]
+        with container.context(val_list[0]):
+            i = 0
+            for val_dct, label_dct in zip(val_list, label_lst):
+                i += 1
+                container.dset(val_dct)
+                if settings.PRINT_UPDATES:
+                    self.show(info, label_dct, i/n)
+                method(seq_name, val_dct, label_dct)
+        safe_call('finish_method', obj, self._name)
+        
+    def show(self, info, label_dct, complete=None):
+        if complete is not None:
+            s = '{:0.2f}% '.format(complete*100)
+        else:
+            s = ''
+        print(s + 'Executing "' + info.get('method', 'unnamed') 
+              + '" method in "' + info.get('sequence', 'unnamed') +
+              + '" sequence in "' + info.get('set', 'unnamed') +
+              '" set with:')
+        for vec_name, item_name in label_dct.items():
+            print('   ' + (vec_name + ': ').ljust(25) + str(item_name))
         
         
-class Sequencer():
-    def __init__(self, sequences, aliases, vectors):
-        self.sequences = sequences
-        self.aliases = aliases
-        self.vectors = vectors
+class Sequence():
+    def __init__(self, name, methods=None):
+        self._name = name
+        self.set_methods(methods)
+        self.set_vectors(vectors)
         
-    def sequence(self, name):
-        seq_dct = {}
-        s = self.sequences[name]
-        for method_name, v_names in s.items():
-            val_list, label_lst = self.vectors.loop(v_names)
-            val_list = [self.aliases.translate(d) for d in val_list]
-            seq_dct[method_name] = {'val_list': val_list,
-                                    'label_lst': label_lst}
-        return seq_dct
+    @property
+    def name(self):
+        return self._name
+        
+    def set_methods(self, methods=None):
+        methods = [] if methods is None
+        self._methods = methods
+    
+    def add(self, method):
+        self._methods.append(methods)
+    
+    def build(self, data, vectors):
+        if not isinstance(data, dict):
+            raise TypeError('data must be a dictionary of method ' +
+                            'name - [vector names] pairs')
+        for method_name, meth_data in data.items():
+            method = Method(name=method_name)
+            method.build(meth_data, vectors)
+            self.add(method)
+    
+    def execute(self, container, obj, aliases=None, info=None):
+        info = {} if info is None else info
+        info['sequence'] = self._name
+        safe_call('prepare_sequence', obj, self._name)
+        for method in self._methods:
+            method.execute(obj, aliases, info=info)
+        safe_call('finish_sequence', obj, self._name)
+
+    
+class Automation_Set():
+    def __init__(self, name, sequences=None):
+        self._sequences = []
+        self.set_sequences(sequences)
+    
+    def set_sequences(self, sequences):
+        self._sequences = sequences
+        
+    def add(self, sequence):
+        self._sequences.append(sequence)
+    
+    def clear(self):
+        self._sequences.clear()
+    
+    def build(self, data):
+        if not isinstance(data, dict):
+            raise TypeError('data must be a dictionary')
+        vector_data = {}
+        if 'constants' in data:
+            vector_data.update(data['constants'])
+        if 'vectors' in data:
+            vector_data.update(data['vectors'])        
+        vectors = Vectors()
+        vectors.build(vector_data)
+        for sequence_name, seq_data in data['sequences'].items():
+            s = Sequence(name=sequence_name)
+            s.build(seq_data, vectors)
+            self.add(s)
     
     @property
     def sequence_names(self):
-        return list(self.sequences.keys())
-        
+        return list([s.name for s in self.sequences)
+   
     def all_sequences(self):
         out = {}
         for seq_name in self.sequence_names:
             seq_dct = self.sequence(seq_name)
             out[seq_name] = seq_dct
         return out
+
+    def run(self, container, obj, seq_name=None, aliases=None):
+        ''' Run an automation set 
         
+        Args:
+            set_name (str): The name of the set to run
+            obj (object): The automated class instance.
+            seq_name (str): [Optional] A specific sequence within the set
+                to run exclusively.
+        '''
+        safe_call('prepare', obj)
+        for sequence in self._sequences:
+            if seq_name is not None:
+                if sequence.name is not seq_name:
+                    continue
+            s.execute(obj, aliases=aliases, info={'set': self._name})
+        safe_call('finish', obj)        
 
