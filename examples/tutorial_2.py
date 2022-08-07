@@ -10,15 +10,18 @@ import vartrix
 ns = vartrix.Name_Space()
 
 def setup_container():
-    dct = {'A': {'apple': 1},
-           'B': {'orange': 2, 'fig': 3}}
+    dct = {'apple': 1,
+           'orange': 2,
+           'fig': 3}
     container = ns['tutorial_2']
     container.load(dct)
     
 
 class Automated():
     def __init__(self):
-        self.params = vartrix.View(ns['tutorial_2'], dotkeys=['A', 'B'])
+        container = ns['tutorial_2']
+        self.params = {'apple': ns['apple'],
+                       'orange': ns['orange']}
         
     def prepare(self):
         print('preparing...')
@@ -47,7 +50,7 @@ def run():
     #s set up container
     setup_container()
     print(ns['tutorial_2'])
-    # {'A.apple': 1, 'B.orange': 2, 'B.fig': 3}
+    # {'apple': 1, 'orange': 2, 'fig': 3}
     
     # Automated class is done
 
@@ -61,37 +64,38 @@ def run():
     automated = Automated()
     automator.run('set_1', automated)
     
-'''
+"""
+{'apple': 1, 'orange': 2, 'fig': 3}
 preparing...
 running sequence: seq_1
 running method: method_a
 calling method_a:
-current labels: {'vec_1': 0, 'vec_2': 'a'}
-current params: {'apple': 5, 'orange': 2, 'fig': 6}
+current labels: {'vec_1': 5, 'vec_2': 'a'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 0, 'vec_2': 'b'}
-current params: {'apple': 5, 'orange': 3, 'fig': 7}
+current labels: {'vec_1': 5, 'vec_2': 'b'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 0, 'vec_2': 'c'}
-current params: {'apple': 5, 'orange': 4, 'fig': 8}
+current labels: {'vec_1': 5, 'vec_2': 'c'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 1, 'vec_2': 'a'}
-current params: {'apple': 10, 'orange': 2, 'fig': 6}
+current labels: {'vec_1': 10, 'vec_2': 'a'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 1, 'vec_2': 'b'}
-current params: {'apple': 10, 'orange': 3, 'fig': 7}
+current labels: {'vec_1': 10, 'vec_2': 'b'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 1, 'vec_2': 'c'}
-current params: {'apple': 10, 'orange': 4, 'fig': 8}
+current labels: {'vec_1': 10, 'vec_2': 'c'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 2, 'vec_2': 'a'}
-current params: {'apple': 15, 'orange': 2, 'fig': 6}
+current labels: {'vec_1': 15, 'vec_2': 'a'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 2, 'vec_2': 'b'}
-current params: {'apple': 15, 'orange': 3, 'fig': 7}
+current labels: {'vec_1': 15, 'vec_2': 'b'}
+current params: {'apple': {}, 'orange': {}}
 calling method_a:
-current labels: {'vec_1': 2, 'vec_2': 'c'}
-current params: {'apple': 15, 'orange': 4, 'fig': 8}
+current labels: {'vec_1': 15, 'vec_2': 'c'}
+current params: {'apple': {}, 'orange': {}}
 finishing method: method_a
 finishing sequence: seq_1
-'''
+"""

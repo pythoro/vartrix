@@ -10,6 +10,7 @@ import pandas as pd
 
 from . import settings
 from .aliases import Aliases
+from . import persist
 
 root = os.path.dirname(os.path.abspath(__file__))
 
@@ -354,11 +355,14 @@ class Automation_Set():
 
 
 class Automator():
-    def __init__(self, container, data=None, aliases=None):
+    def __init__(self, container, fname=None, data=None, aliases=None):
         self._sets = {}
         self.set_aliases(aliases)
         self.container = container
         if data is not None:
+            self.build(data)
+        elif fname is not None:
+            data = persist.load(fname)
             self.build(data)
             
     def set_automation_set(self, set_name, automation_set):
