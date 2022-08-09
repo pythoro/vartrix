@@ -17,11 +17,16 @@ def setup_container():
     container.load(dct)
     
 
-class Automated():
+class Widget():
     def __init__(self):
         container = ns['tutorial_2']
-        self.params = {'apple': ns['apple'],
-                       'orange': ns['orange']}
+        self.params = {'apple': container['apple'],
+                       'orange': container['orange']}
+    
+
+class Automated():
+    def __init__(self):
+        pass
         
     def prepare(self):
         print('preparing...')
@@ -34,8 +39,10 @@ class Automated():
 
     def method_a(self, seq_name, val_dct, label_dct):
         print('calling method_a:')
+        widget = Widget()
         print('current labels: ' + str(label_dct))
-        print('current params: ' + str(self.params))
+        print('current widget params: ' + str(widget.params))
+        print('current val_dct: ' + str(val_dct))
 
     def finish_method(self, method_name):
         print('finishing method: ' + method_name)
@@ -71,31 +78,40 @@ running sequence: seq_1
 running method: method_a
 calling method_a:
 current labels: {'vec_1': 5, 'vec_2': 'a'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 5, 'orange': 2}
+current val_dct: {'apple': 5, 'orange': 2, 'fig': 6}
 calling method_a:
 current labels: {'vec_1': 5, 'vec_2': 'b'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 5, 'orange': 3}
+current val_dct: {'apple': 5, 'orange': 3, 'fig': 7}
 calling method_a:
 current labels: {'vec_1': 5, 'vec_2': 'c'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 5, 'orange': 4}
+current val_dct: {'apple': 5, 'orange': 4, 'fig': 8}
 calling method_a:
 current labels: {'vec_1': 10, 'vec_2': 'a'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 10, 'orange': 2}
+current val_dct: {'apple': 10, 'orange': 2, 'fig': 6}
 calling method_a:
 current labels: {'vec_1': 10, 'vec_2': 'b'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 10, 'orange': 3}
+current val_dct: {'apple': 10, 'orange': 3, 'fig': 7}
 calling method_a:
 current labels: {'vec_1': 10, 'vec_2': 'c'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 10, 'orange': 4}
+current val_dct: {'apple': 10, 'orange': 4, 'fig': 8}
 calling method_a:
 current labels: {'vec_1': 15, 'vec_2': 'a'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 15, 'orange': 2}
+current val_dct: {'apple': 15, 'orange': 2, 'fig': 6}
 calling method_a:
 current labels: {'vec_1': 15, 'vec_2': 'b'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 15, 'orange': 3}
+current val_dct: {'apple': 15, 'orange': 3, 'fig': 7}
 calling method_a:
 current labels: {'vec_1': 15, 'vec_2': 'c'}
-current params: {'apple': {}, 'orange': {}}
+current widget params: {'apple': 15, 'orange': 4}
+current val_dct: {'apple': 15, 'orange': 4, 'fig': 8}
 finishing method: method_a
 finishing sequence: seq_1
 """
