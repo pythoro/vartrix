@@ -28,27 +28,20 @@ import vartrix
 ```
 
 ### Containers
-A container is a dictionary-like object that contains a set of parameters. The keys are 'dotkeys'. For example, 'a.b.c', or 'subpackage.module.class.key'.
+A container is a dictionary-like object that contains a set of parameters.
 
-There are a few ways to set up containers. First, from a nested dictionary:
 ```python
-dct = {'A': {'apple': 5, 'banana': 7, 'grape': 11},
-	   'B': {'fig': 13, 'pear': 17, 'orange': 19}}
+dct = {
+    'apple': 5,
+    'banana': 7,
+    'grape': 11,
+	 'fig': 13,
+	 'pear': 17,
+	 'orange': 19}}
 container = vartrix.Container(dct)
 print(container)
-# {'A.apple': 5, 'A.banana': 7, 'A.grape': 11, 'B.fig': 13, 'B.pear': 17, 'B.orange': 19}
+# {'apple': 5, 'banana': 7, 'grape': 11, 'fig': 13, 'pear': 17, 'orange': 19}
 ```
-
-From a flat ('dotkey') dictionary:
-```python
-dct = {'A.apple': 5, 'A.banana': 7, 'A.grape': 11,
-	   'B.fig': 13, 'B.pear': 17, 'B.orange': 19}
-container = vartrix.Container(dct)
-print(container)
-# {'A.apple': 5, 'A.banana': 7, 'A.grape': 11, 'B.fig': 13, 'B.pear': 17, 'B.orange': 19}
-```
-
-You can use any dictionary to set up the Container.
 
 ### Name spaces
 
@@ -90,8 +83,6 @@ print(d.a)
 ```
 
 
-
-
 ## Quickstart tutorial - automation
 
 ### Setup
@@ -103,8 +94,9 @@ import vartrix
 ns = vartrix.Name_Space()
 
 def setup_container():
-    dct = {'A': {'apple': 1},
-           'B': {'orange': 2, 'fig': 3}}
+    dct = {'apple': 1,
+           'orange': 2,
+           'fig': 3}
     container = ns['tutorial_2']
     container.load(dct)
 ```
@@ -114,19 +106,21 @@ Let's run it and check it's worked:
 ```python
 setup_container()
 print(ns['tutorial_2'])
-# {'A.apple': 1, 'B.orange': 2, 'B.fig': 3}
+# {'apple': 1, 'orange': 2, 'fig': 3}
 ```
 
 ### Sequences
 Now, let's create a a set of automation parameters. They need to be a nested dictionary structure. We'll use a Yaml file to set them up.
 
+You can build automation sets manually from dictionaries and classes in the automate module, but it's easier to use an input file. 
+
 tutorial_2.yml
 ```yaml
+aliases:
+    alias_1: apple
+    alias_2: orange
+    alias_3: fig
 set_1:
-    aliases:
-        alias_1: A.apple
-        alias_2: B.orange
-        alias_3: B.fig
     vectors:
         vec_1:
             alias_1: [5, 10, 15]
@@ -141,10 +135,9 @@ set_1:
 
 There are some key things about the structure:
 
-* The highest level is for each set. Only one set is run at a time. Each `set` is labeled by its its key. In this case, we have one set called `set_1`.
-* Each set needs three keys:
-    * **aliases:** A dictionary where keys are aliases - shorter names for possibly long entries in the container - and the values are the corresponding container keys. The values need to exist as keys in the container.
-	* **vectors:** Dictionary where each key-value pair specifies a series of values. The aliases must exist in the `aliases` dictionary. There are multiple formats, as described below.
+* The first key is for aliases - these are optional. They simply enable you to use shorter names for parameters if you want.
+* Remaining top level keys are for automation sets. Each is independent, and needs:
+	* **vectors:** Dictionary where each key is the name of a vector. It's value is another dictionary. The aliases must exist in the `aliases` dictionary. There are multiple formats, as described below.
 	* **sequences:** A dictionary where each key is the name of a sequence. Inside each sequence, there are keys that correspond to method names in the class that we're going to use for the automation. The values are lists of vector names that must exist in the `vectors` dictionary. The way they work is described below.
 	
 #### How sequences work
@@ -224,12 +217,19 @@ The vartrix Automator calls the method(s) specified in each sequence at each ite
 * finish_sequence(seq_name): Called at the end of each sequence
 * finish(): Called at the end of the set
 
-For this tutorial, we'll create a simple automated class like this:
+For this tutorial, we'll create two simple classes like this:
 
 ```python
+class Widget():
+    def __init__(self):
+        container = ns['tutorial_2']
+        self.params = {'apple': container['apple'],
+                       'orange': container['orange']}
+    
+
 class Automated():
     def __init__(self):
-        self.params = vartrix.View(ns['tutorial_2'], dotkeys=['A', 'B'])
+        pass
         
     def prepare(self):
         print('preparing...')
@@ -242,8 +242,10 @@ class Automated():
 
     def method_a(self, seq_name, val_dct, label_dct):
         print('calling method_a:')
+        widget = Widget()
         print('current labels: ' + str(label_dct))
-        print('current params: ' + str(self.params))
+        print('current widget params: ' + str(widget.params))
+        print('current val_dct: ' + str(val_dct))
 
     def finish_method(self, method_name):
         print('finishing method: ' + method_name)
@@ -264,38 +266,48 @@ automated = Automated()
 automator.run('set_1', automated)
 ```
 
-The output looks like this:
+The output looks like this (as we used print statements):
 ```python
+{'apple': 1, 'orange': 2, 'fig': 3}
 preparing...
 running sequence: seq_1
 running method: method_a
 calling method_a:
-current labels: {'vec_1': 0, 'vec_2': 'a'}
-current params: {'apple': 5, 'orange': 2, 'fig': 6}
+current labels: {'vec_1': 5, 'vec_2': 'a'}
+current widget params: {'apple': 5, 'orange': 2}
+current val_dct: {'apple': 5, 'orange': 2, 'fig': 6}
 calling method_a:
-current labels: {'vec_1': 0, 'vec_2': 'b'}
-current params: {'apple': 5, 'orange': 3, 'fig': 7}
+current labels: {'vec_1': 5, 'vec_2': 'b'}
+current widget params: {'apple': 5, 'orange': 3}
+current val_dct: {'apple': 5, 'orange': 3, 'fig': 7}
 calling method_a:
-current labels: {'vec_1': 0, 'vec_2': 'c'}
-current params: {'apple': 5, 'orange': 4, 'fig': 8}
+current labels: {'vec_1': 5, 'vec_2': 'c'}
+current widget params: {'apple': 5, 'orange': 4}
+current val_dct: {'apple': 5, 'orange': 4, 'fig': 8}
 calling method_a:
-current labels: {'vec_1': 1, 'vec_2': 'a'}
-current params: {'apple': 10, 'orange': 2, 'fig': 6}
+current labels: {'vec_1': 10, 'vec_2': 'a'}
+current widget params: {'apple': 10, 'orange': 2}
+current val_dct: {'apple': 10, 'orange': 2, 'fig': 6}
 calling method_a:
-current labels: {'vec_1': 1, 'vec_2': 'b'}
-current params: {'apple': 10, 'orange': 3, 'fig': 7}
+current labels: {'vec_1': 10, 'vec_2': 'b'}
+current widget params: {'apple': 10, 'orange': 3}
+current val_dct: {'apple': 10, 'orange': 3, 'fig': 7}
 calling method_a:
-current labels: {'vec_1': 1, 'vec_2': 'c'}
-current params: {'apple': 10, 'orange': 4, 'fig': 8}
+current labels: {'vec_1': 10, 'vec_2': 'c'}
+current widget params: {'apple': 10, 'orange': 4}
+current val_dct: {'apple': 10, 'orange': 4, 'fig': 8}
 calling method_a:
-current labels: {'vec_1': 2, 'vec_2': 'a'}
-current params: {'apple': 15, 'orange': 2, 'fig': 6}
+current labels: {'vec_1': 15, 'vec_2': 'a'}
+current widget params: {'apple': 15, 'orange': 2}
+current val_dct: {'apple': 15, 'orange': 2, 'fig': 6}
 calling method_a:
-current labels: {'vec_1': 2, 'vec_2': 'b'}
-current params: {'apple': 15, 'orange': 3, 'fig': 7}
+current labels: {'vec_1': 15, 'vec_2': 'b'}
+current widget params: {'apple': 15, 'orange': 3}
+current val_dct: {'apple': 15, 'orange': 3, 'fig': 7}
 calling method_a:
-current labels: {'vec_1': 2, 'vec_2': 'c'}
-current params: {'apple': 15, 'orange': 4, 'fig': 8}
+current labels: {'vec_1': 15, 'vec_2': 'c'}
+current widget params: {'apple': 15, 'orange': 4}
+current val_dct: {'apple': 15, 'orange': 4, 'fig': 8}
 finishing method: method_a
 finishing sequence: seq_1
 ```
