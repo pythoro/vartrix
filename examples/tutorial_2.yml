@@ -1,7 +1,7 @@
 aliases:
-    alias_1: A.apple
-    alias_2: B.orange
-    alias_3: B.fig
+    alias_1: apple
+    alias_2: orange
+    alias_3: fig
 set_1:
     vectors:
         vec_1:
