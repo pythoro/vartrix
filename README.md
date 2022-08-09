@@ -35,9 +35,9 @@ dct = {
     'apple': 5,
     'banana': 7,
     'grape': 11,
-	 'fig': 13,
-	 'pear': 17,
-	 'orange': 19}}
+    'fig': 13,
+    'pear': 17,
+    'orange': 19}}
 container = vartrix.Container(dct)
 print(container)
 # {'apple': 5, 'banana': 7, 'grape': 11, 'fig': 13, 'pear': 17, 'orange': 19}
