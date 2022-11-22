@@ -6,7 +6,7 @@ Created on Mon Sep  9 17:05:43 2019
 """
 
 import json
-import importlib
+import importlib.util
 from . import utils
 
 def is_importable(module_name):
@@ -82,7 +82,8 @@ class Yaml(Handler):
     
     def load(self, fname, **kwargs):
         with open(fname, mode='r') as f:
-            dct = yml.safe_load(f)
+            y = yml.YAML(typ='safe', pure=True)
+            dct = y.load(f)
         return dct
     
     def save(self, dct, fname, **kwargs):

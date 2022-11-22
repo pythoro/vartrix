@@ -29,8 +29,7 @@ setuptools.setup(
     packages=['vartrix'],
     keywords=['PARAMETERS', 'VARIABLES', 'PARAMETRIC', 'AUTOMATION', 'AUTOMATE'],
     classifiers=[
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3",
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
