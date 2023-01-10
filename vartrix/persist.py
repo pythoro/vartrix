@@ -85,12 +85,13 @@ class Yaml(Handler):
             y = yml.YAML(typ='safe', pure=True)
             dct = y.load(f)
         return dct
-    
-    def save(self, dct, fname, **kwargs):
-        with open(fname, mode='w') as f:
+
+    def save(self, dct, fname, flow_style=False, **kwargs):
+        with open(fname, mode="w") as f:
             y = yml.YAML()
+            y.default_flow_style = flow_style
             y.dump(dict(dct), f)
-            
+
 
 class Xlsx(Handler):
     _import_name = 'openpyxl'    
