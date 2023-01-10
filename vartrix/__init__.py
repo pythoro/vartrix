@@ -20,4 +20,3 @@ from .container import Container
 from .automate import Automator
 from .aliases import Aliases
 from .utils import Factory, Simple_Factory
-

@@ -11,9 +11,10 @@ This module contains helper classes and functions.
 import inspect, sys
 import numpy as np
 
-class Factory():
-    ''' Instantiate module classes based on container key 
-    
+
+class Factory:
+    """Instantiate module classes based on container key
+
     Args:
         name (str): The module name (often `__name__`)
         container (Container): The container instance
@@ -25,37 +26,44 @@ class Factory():
         to instantiate the object.
         default (str): OPTIONAL: An optional default value if the dotkey
         is not present.
-        
+
     Note:
         The class name pointed to by the dotkey must exist in the module,
         or a KeyError will be raised.
-    '''
-    
-    def __init__(self, name, container, dotkey, build_function=None,
-                 class_method=None, default=None):
+    """
+
+    def __init__(
+        self,
+        name,
+        container,
+        dotkey,
+        build_function=None,
+        class_method=None,
+        default=None,
+    ):
         self.container = container
         self.name = name
         self.dotkey = dotkey
         self.build_function = build_function
         self._class_method = class_method
         self._default = default
-    
+
     def new(self, *args, **kwargs):
-        ''' Create a new instance based on the current dotkey value '''
+        """Create a new instance based on the current dotkey value"""
         if self.dotkey in self.container:
             cls_name = self.container[self.dotkey]
         elif self._default is not None:
             cls_name = self._default
         else:
-            raise KeyError('Class name not provided by dotkey or default.')
-        clsmembers = inspect.getmembers(sys.modules[self.name],
-                                        inspect.isclass)
+            raise KeyError("Class name not provided by dotkey or default.")
+        clsmembers = inspect.getmembers(sys.modules[self.name], inspect.isclass)
         clsdct = {t[0]: t[1] for t in clsmembers}
         try:
             c = clsdct[cls_name]
         except KeyError:
-            raise KeyError('Class ' + str(cls_name) + ' not found in module '
-                           + str(self.name))
+            raise KeyError(
+                "Class " + str(cls_name) + " not found in module " + str(self.name)
+            )
         if self.build_function is not None:
             obj = c(*args, **kwargs)
             return self.build_function(obj)
@@ -65,22 +73,22 @@ class Factory():
         else:
             return c(*args, **kwargs)
 
-class Simple_Factory():
-    def __init__(self, name, build_function=None,
-                 class_method=None):
+
+class Simple_Factory:
+    def __init__(self, name, build_function=None, class_method=None):
         self.name = name
         self.build_function = build_function
         self._class_method = class_method
-        
+
     def new(self, cls_name, *args, **kwargs):
-        clsmembers = inspect.getmembers(sys.modules[self.name],
-                                        inspect.isclass)
+        clsmembers = inspect.getmembers(sys.modules[self.name], inspect.isclass)
         clsdct = {t[0]: t[1] for t in clsmembers}
         try:
             c = clsdct[cls_name]
         except KeyError:
-            raise KeyError('Class ' + str(cls_name) + ' not found in module '
-                           + str(self.name))
+            raise KeyError(
+                "Class " + str(cls_name) + " not found in module " + str(self.name)
+            )
         if self.build_function is not None:
             obj = c(*args, **kwargs)
             return self.build_function(obj)
@@ -89,8 +97,8 @@ class Simple_Factory():
             return method(*args, **kwargs)
         else:
             return c(*args, **kwargs)
-        
-    
+
+
 class Attrdict(dict):
     def __new__(cls, *args, **kwargs):
         d = super(Attr_Dict, cls).__new__(cls, *args, **kwargs)
@@ -108,24 +116,27 @@ def _nest(key_list, val, dct=None):
         _nest(key_list[1:], val, dct[key_list[0]])
     return dct
 
+
 def nested(dct):
-    ''' Create a nested dictionary representation of a dotkey flat dictionary '''
+    """Create a nested dictionary representation of a dotkey flat dictionary"""
     out_dct = {}
     for dotkey, val in dct.items():
-        key_list = dotkey.split('.')
+        key_list = dotkey.split(".")
         _nest(key_list, val, out_dct)
     return out_dct
 
-def flat(dct, base=''):
-    ''' Create a flat dictionary representation of nested dictionary '''
+
+def flat(dct, base=""):
+    """Create a flat dictionary representation of nested dictionary"""
     out_dct = {}
     for k, v in dct.items():
-        dotkey = base + '.' + k
+        dotkey = base + "." + k
         if isinstance(v, dict):
             out_dct[dotkey] = flat(v, base=dotkey)
         else:
             out_dct[dotkey] = v
     return out_dct
+
 
 def numpify(obj):
     if isinstance(obj, list):
@@ -134,7 +145,8 @@ def numpify(obj):
         return {k: numpify(v) for k, v in obj.items()}
     else:
         return obj
-    
+
+
 def denumpify(obj):
     if isinstance(obj, np.ndarray):
         return obj.tolist()

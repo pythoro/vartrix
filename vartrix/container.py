@@ -20,50 +20,50 @@ from . import utils
 
 
 class Container(dict):
-    ''' A dictionary-like class that updates observers 
-    
+    """A dictionary-like class that updates observers
+
     Args:
         dct (dict): A dictionary (possibly nested) of key-value pairs to use.
-        
+
     Note:
         A `dotkey` is a dictionary key in the Container. It's called a dotkey
         simply because it's designed to have dots in it to represent a
         heirarchy.
-    '''
+    """
 
     def __init__(self, dct=None):
         self._backup = {}
         self._locks = set()
         if dct is not None:
             self.load(dct)
-            
+
     def set(self, key, val, safe=False):
-        ''' Set the value of a key
-        
+        """Set the value of a key
+
         Args:
             key (str): The key value
             val: The value to set. It can be a numpy array.
             safe (bool): Optional boolean. If true, the dotkey must already
             exist in the Container instance.
-        '''
+        """
         if safe:
             if key not in self:
-                raise KeyError("In safe mode, key '" 
-                               + key + "' must be present.")
+                raise KeyError("In safe mode, key '" + key + "' must be present.")
             if key in self._locks:
-                raise ValueError("Key '" + key + "' was locked while setting "
-                               "in safe mode.")
+                raise ValueError(
+                    "Key '" + key + "' was locked while setting " "in safe mode."
+                )
         v = utils.denumpify(val)
         self[key] = v  # Set the value
-    
+
     def dset(self, dct, safe=False):
-        ''' Set multiple values specified in a dictionary
-        
+        """Set multiple values specified in a dictionary
+
         Args:
             dct (dict): The dictionary of dotkey-value pairs.
             safe (bool): Optional boolean. If true, the dotkey must already
             exist in the Container instance.
-        '''
+        """
         for key, val in dct.items():
             self.set(key, val, safe=safe)
 
@@ -74,55 +74,58 @@ class Container(dict):
         self._locks.remove(key)
 
     def load(self, dct):
-        ''' Set the container data using a dictionary '''
+        """Set the container data using a dictionary"""
         self.clear()
         self._backup.clear()
         self._locks.clear()
         self.add(dct)
-        
+
     def reset(self):
         self.load(self._backup.copy())
 
     def add(self, dct):
-        ''' Add another set of data to the container '''
+        """Add another set of data to the container"""
         self.update(dct)
         self._backup.update(dct)
-                
+
     @classmethod
     def merge(cls, containers):
-        ''' Combine a list of containers '''
+        """Combine a list of containers"""
         c = cls()
         for container in containers:
             c.update(container)
         return c
-    
+
     @contextmanager
     def context(self, dct, safe=True):
-        """ A context manager for temporary changes in values 
-        
+        """A context manager for temporary changes in values
+
         Args:
             dct (dict): A dictionary of dotkey-value pairs.
-            safe (bool): [Optional] set to false to ignore locks. Keys 
+            safe (bool): [Optional] set to false to ignore locks. Keys
                 must already exist in the container.
-            
+
         """
         try:
             originals = {k: self[k] for k in dct.keys()}
         except KeyError:
             for k in dct.keys():
                 if k not in self:
-                    raise KeyError("Key '" + k + "' was missing. " +
-                           "Keys must already exist to use context.")
+                    raise KeyError(
+                        "Key '"
+                        + k
+                        + "' was missing. "
+                        + "Keys must already exist to use context."
+                    )
         self.dset(dct, safe=safe)
         yield self
         self.dset(originals, safe=safe)
-    
+
     def copy(self):
         new = Container(dct=self)
         new._backup = self._backup.copy()
         new._locks = self._locks.copy()
         return new
-    
+
     def to_dict(self):
         return dict(self)
-    

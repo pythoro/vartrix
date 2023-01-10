@@ -9,22 +9,22 @@ Created on Sat Feb  5 20:38:43 2022
 import pandas as pd
 
 
-def check_csv(fname, dotkey='dotkey', alias='alias'):
+def check_csv(fname, dotkey="dotkey", alias="alias"):
     df = pd.read_csv(fname, usecols=[dotkey, alias])
-    inds = df.duplicated(subset=['alias'])
+    inds = df.duplicated(subset=["alias"])
     if any(inds):
         df2 = df.loc[inds]
-        raise KeyError('Duplate aliases: ', df2['alias'])
+        raise KeyError("Duplate aliases: ", df2["alias"])
+
 
 def canonical(aliases):
-    """ Return an Aliases with only last keys for duplicate values """
+    """Return an Aliases with only last keys for duplicate values"""
     uniques_inv = {v: k for k, v in aliases.items()}
     uniques = {v: k for k, v in uniques_inv.items()}
     return Aliases(uniques)
 
 
 class Aliases(dict):
-       
     def translate(self, dct):
         out = {}
         for k, v in dct.items():
@@ -33,11 +33,11 @@ class Aliases(dict):
             else:
                 out[k] = v
         return out
-    
+
     def copy(self):
         return Aliases(self)
-    
-    def add_csv(self, fname, dotkey='dotkey', alias='alias', **kwargs):
+
+    def add_csv(self, fname, dotkey="dotkey", alias="alias", **kwargs):
         df = pd.read_csv(fname, usecols=[dotkey, alias])
         dct = {r[alias]: r[dotkey] for i, r in df.iterrows()}
         self.update(dct)
