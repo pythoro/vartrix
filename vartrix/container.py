@@ -48,24 +48,42 @@ class Container(dict):
         """
         if safe:
             if key not in self:
-                raise KeyError("In safe mode, key '" + key + "' must be present.")
+                raise KeyError(
+                    "In safe mode, key '" + key + "' must be present."
+                )
             if key in self._locks:
                 raise ValueError(
-                    "Key '" + key + "' was locked while setting " "in safe mode."
+                    "Key '" + key + "' was locked while setting "
+                    "in safe mode."
                 )
         v = utils.denumpify(val)
         self[key] = v  # Set the value
 
-    def dset(self, dct, safe=False):
+    def dset(self, dct, safe=False, update_backup=False):
         """Set multiple values specified in a dictionary
 
         Args:
-            dct (dict): The dictionary of dotkey-value pairs.
-            safe (bool): Optional boolean. If true, the dotkey must already
-            exist in the Container instance.
+            dct (dict): The dictionary of key-value pairs.
+            safe (bool): Optional boolean. If true, the key must already
+                exist in the Container instance.
+            update_backup (bool): If true, update the internal backup values
+                that reset() restores.
         """
         for key, val in dct.items():
-            self.set(key, val, safe=safe)
+            try:
+                self.set(key, val, safe=safe)
+            except KeyError as e:
+                if not safe:
+                    raise e
+                else:
+                    unmatched = [k for k in dct.keys() if k not in self]
+                    raise KeyError(
+                        "Only values for existing keys are allowed. "
+                        + "The following keys are not valid: "
+                        + ", ".join(unmatched)
+                    )
+        if update_backup:
+            self._backup.update(dct)
 
     def lock(self, key):
         self._locks.add(key)
