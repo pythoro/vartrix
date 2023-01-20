@@ -9,8 +9,8 @@ Created on Sat Feb  5 20:38:43 2022
 import pandas as pd
 
 
-def check_csv(fname, dotkey="dotkey", alias="alias"):
-    df = pd.read_csv(fname, usecols=[dotkey, alias])
+def check_csv(fname, key="key", alias="alias"):
+    df = pd.read_csv(fname, usecols=[key, alias])
     inds = df.duplicated(subset=["alias"])
     if any(inds):
         df2 = df.loc[inds]
@@ -37,9 +37,9 @@ class Aliases(dict):
     def copy(self):
         return Aliases(self)
 
-    def add_csv(self, fname, dotkey="dotkey", alias="alias", **kwargs):
-        df = pd.read_csv(fname, usecols=[dotkey, alias])
-        dct = {r[alias]: r[dotkey] for i, r in df.iterrows()}
+    def add_csv(self, fname, key="key", alias="alias", **kwargs):
+        df = pd.read_csv(fname, usecols=[key, alias])
+        dct = {r[alias]: r[key] for i, r in df.iterrows()}
         self.update(dct)
 
     def __missing__(self, key):
