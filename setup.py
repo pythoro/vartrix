@@ -15,7 +15,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setuptools.setup(
     name="vartrix",
-    version="0.3.0",
+    version="0.3.1",
     author="Reuben Rusk",
     description="Easily manange and automate variables and parameters.",
     long_description=long_description,
