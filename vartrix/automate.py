@@ -385,14 +385,15 @@ class Automator:
         self._sets[set_name] = automation_set
 
     def set_aliases(self, aliases):
+        aliases = {} if aliases is None else aliases
         self._aliases = aliases
 
     def build(self, data):
         d = data.copy()
         try:
             alias_data = d.pop("aliases")
-        except:
-            alias_data = {}
+        except KeyError:
+            alias_data = self._aliases
         aliases = Aliases(alias_data)
         self.set_aliases(aliases)
         for set_name, set_data in d.items():
