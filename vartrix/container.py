@@ -15,7 +15,9 @@ allow the heirarchy to be used to simplify usage.
 """
 
 from contextlib import contextmanager
+from warnings import warn
 
+from .aliases import Aliases
 from . import utils
 
 
@@ -33,9 +35,13 @@ class Container(dict):
 
     def __init__(self, dct=None):
         self._backup = {}
+        self._aliases = Aliases()
         self._locks = set()
         if dct is not None:
             self.load(dct)
+
+    def set_aliases(self, aliases):
+        self._aliases = Aliases(aliases)
 
     def set(self, key, val, safe=False):
         """Set the value of a key
@@ -57,7 +63,7 @@ class Container(dict):
                     "in safe mode."
                 )
         v = utils.denumpify(val)
-        self[key] = v  # Set the value
+        self[self._aliases[key]] = v  # Set the value
 
     def dset(self, dct, safe=False, update_backup=False):
         """Set multiple values specified in a dictionary
@@ -69,27 +75,28 @@ class Container(dict):
             update_backup (bool): If true, update the internal backup values
                 that reset() restores.
         """
-        for key, val in dct.items():
+        d = self._aliases.translate(dct)
+        for key, val in d.items():
             try:
                 self.set(key, val, safe=safe)
             except KeyError as e:
                 if not safe:
                     raise e
                 else:
-                    unmatched = [k for k in dct.keys() if k not in self]
+                    unmatched = [k for k in d.keys() if k not in self]
                     raise KeyError(
                         "Only values for existing keys are allowed. "
                         + "The following keys are not valid: "
                         + ", ".join(unmatched)
                     )
         if update_backup:
-            self._backup.update(dct)
+            self._backup.update(d)
 
     def lock(self, key):
-        self._locks.add(key)
+        self._locks.add(self._aliases[key])
 
     def unlock(self, key):
-        self._locks.remove(key)
+        self._locks.remove(self._aliases[key])
 
     def load(self, dct):
         """Set the container data using a dictionary"""
@@ -103,8 +110,9 @@ class Container(dict):
 
     def add(self, dct):
         """Add another set of data to the container"""
-        self.update(dct)
-        self._backup.update(dct)
+        d = self._aliases.translate(dct)
+        self.update(d)
+        self._backup.update(d)
 
     @classmethod
     def merge(cls, containers):
@@ -143,7 +151,20 @@ class Container(dict):
         new = Container(dct=self)
         new._backup = self._backup.copy()
         new._locks = self._locks.copy()
+        new._aliases = self._aliases.copy()
         return new
 
     def to_dict(self):
         return dict(self)
+
+    def __missing__(self, key):
+        canonical = self._aliases[key]
+        if canonical in self:
+            warn(
+                "Key '" + key + "' has been replaced by '" + canonical + "'",
+                UserWarning,
+                stacklevel=2,
+            )
+            return self[canonical]
+        else:
+            raise KeyError("Key error: " + str(key))
