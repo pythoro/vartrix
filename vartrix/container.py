@@ -75,21 +75,22 @@ class Container(dict):
             update_backup (bool): If true, update the internal backup values
                 that reset() restores.
         """
-        for key, val in dct.items():
+        d = self._aliases.translate(dct)
+        for key, val in d.items():
             try:
                 self.set(key, val, safe=safe)
             except KeyError as e:
                 if not safe:
                     raise e
                 else:
-                    unmatched = [k for k in dct.keys() if k not in self]
+                    unmatched = [k for k in d.keys() if k not in self]
                     raise KeyError(
                         "Only values for existing keys are allowed. "
                         + "The following keys are not valid: "
                         + ", ".join(unmatched)
                     )
         if update_backup:
-            self._backup.update(dct)
+            self._backup.update(d)
 
     def lock(self, key):
         self._locks.add(self._aliases[key])
