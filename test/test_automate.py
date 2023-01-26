@@ -40,7 +40,8 @@ def get_test_data():
     fname = get_fname()
     set_csv_root()
     with open(fname) as f:
-        sets = yml.safe_load(f)
+        yaml = yml.YAML(typ="safe", pure=True)
+        sets = yaml.load(f)
     return sets
 
 
@@ -58,7 +59,12 @@ class Automated:
         self.method_d_calls = []
 
         def get_methods_dct():
-            return {"method_a": [], "method_b": [], "method_c": [], "method_d": []}
+            return {
+                "method_a": [],
+                "method_b": [],
+                "method_c": [],
+                "method_d": [],
+            }
 
         def get_dct():
             return {
@@ -83,27 +89,41 @@ class Automated:
         self.prepare_method_names.append(method_name)
 
     def append_history(self, seq_name, method_name):
-        self.alias_one_history[seq_name][method_name].append(self.params["alias.one"])
-        self.alias_two_history[seq_name][method_name].append(self.params["alias.two"])
+        self.alias_one_history[seq_name][method_name].append(
+            self.params["alias.one"]
+        )
+        self.alias_two_history[seq_name][method_name].append(
+            self.params["alias.two"]
+        )
         self.alias_three_history[seq_name][method_name].append(
             self.params["alias.three"]
         )
-        self.alias_four_history[seq_name][method_name].append(self.params["alias.four"])
+        self.alias_four_history[seq_name][method_name].append(
+            self.params["alias.four"]
+        )
 
     def method_a(self, seq_name, val_dct, label_dct):
-        self.method_a_calls.append({"val_dct": val_dct, "label_dct": label_dct})
+        self.method_a_calls.append(
+            {"val_dct": val_dct, "label_dct": label_dct}
+        )
         self.append_history(seq_name, "method_a")
 
     def method_b(self, seq_name, val_dct, label_dct):
-        self.method_b_calls.append({"val_dct": val_dct, "label_dct": label_dct})
+        self.method_b_calls.append(
+            {"val_dct": val_dct, "label_dct": label_dct}
+        )
         self.append_history(seq_name, "method_b")
 
     def method_c(self, seq_name, val_dct, label_dct):
-        self.method_c_calls.append({"val_dct": val_dct, "label_dct": label_dct})
+        self.method_c_calls.append(
+            {"val_dct": val_dct, "label_dct": label_dct}
+        )
         self.append_history(seq_name, "method_c")
 
     def method_d(self, seq_name, val_dct, label_dct):
-        self.method_d_calls.append({"val_dct": val_dct, "label_dct": label_dct})
+        self.method_d_calls.append(
+            {"val_dct": val_dct, "label_dct": label_dct}
+        )
         self.append_history(seq_name, "method_d")
 
     def finish_method(self, method_name):
@@ -288,7 +308,9 @@ class Test_Vector(unittest.TestCase):
     def test_get_label_lst_unlabelled(self):
         v = self.get_vec_unlabelled()
         lst = v.values(typ="labels")
-        self.assertListEqual(lst, [{"vec_unlabelled": 0}, {"vec_unlabelled": 1}])
+        self.assertListEqual(
+            lst, [{"vec_unlabelled": 0}, {"vec_unlabelled": 1}]
+        )
 
     def get_vec_2(self):
         d = {"labels": ["c", "d"], "alias_3": [5, 6], "alias_4": [7, 8]}
@@ -462,8 +484,16 @@ class Test_Vectors(unittest.TestCase):
 class Test_Vectors(unittest.TestCase):
     def make_vectors(self):
         d = {
-            "vec_1": {"labels": ["a", "b"], "alias_1": [1, 2], "alias_2": [3, 4]},
-            "vec_2": {"labels": ["c", "d"], "alias_3": [5, 6], "alias_4": [7, 8]},
+            "vec_1": {
+                "labels": ["a", "b"],
+                "alias_1": [1, 2],
+                "alias_2": [3, 4],
+            },
+            "vec_2": {
+                "labels": ["c", "d"],
+                "alias_3": [5, 6],
+                "alias_4": [7, 8],
+            },
         }
         v = automate.Vectors()
         v.build(d)
@@ -507,7 +537,8 @@ class Test_Vectors(unittest.TestCase):
         v = self.make_vectors()
         val_lst, label_lst = v.loop(["vec_1", "vec_2"])
         self.assertListEqual(
-            val_lst, [{"alias_1": [1], "alias_3": 5}, {"alias_1": [1], "alias_3": 6}]
+            val_lst,
+            [{"alias_1": [1], "alias_3": 5}, {"alias_1": [1], "alias_3": 6}],
         )
         self.assertListEqual(
             label_lst,
