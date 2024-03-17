@@ -52,9 +52,20 @@ class Test_Sequence:
         ]
         assert out == approx(expected)
 
+    def test_combinations(self):
+        dicts = [{"a": [4, 5]}, {"b": [2, 3], "c": [6, 7]}]
+        out = sequence.combinations(dicts)
+        expected = [
+            {"a": 4, "b": 2, "c": 6},
+            {"a": 4, "b": 3, "c": 7},
+            {"a": 5, "b": 2, "c": 6},
+            {"a": 5, "b": 3, "c": 7},
+        ]
+        assert out == approx(expected)
+
     def func_test(self, context, update_dict):
         return update_dict
-    
+
     def test_iterate(self, context1):
         update_dicts = [
             {"b": 2, "c": 6},
@@ -64,4 +75,3 @@ class Test_Sequence:
         ]
         ret = sequence.iterate(self.func_test, context1, update_dicts)
         assert ret == approx(update_dicts)
-        

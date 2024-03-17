@@ -91,6 +91,26 @@ def combinations_from_dict(dct: dict) -> list[dict]:
     return [{l: v for l, v in zip(labels, vals)} for vals in combs]
 
 
+def combinations(dicts: list[dict]) -> list[dict]:
+    """Main method to create update_dicts from a list of dicts
+
+    Each dictionary includes iterable values for each key. For dictionaries
+    with multiple keys, the values at index 0 are all used, then the values at
+    index 1, etc. until all values are used. The length of each dictionary
+    value should be equal. 
+
+    Each key in each dictionary must match one in the Context.
+
+    >>> dicts = [{'a': [4, 5]}, {'b': [2, 3], 'c': [6, 7]}]
+    >>> combinations(dicts)
+    [{'a': 4, 'b': 2, 'c': 6},
+     {'a': 4, 'b': 3, 'c': 7},
+     {'a': 5, 'b': 2, 'c': 6},
+     {'a': 5, 'b': 3, 'c': 7}]
+    """
+    dlists = [dlist(dct) for dct in dicts]
+    return combinations_from_lists(dlists)
+
 def iterate(
     func: typing.Callable, context: context.Context, update_dicts: list[dict]
 ) -> list:
