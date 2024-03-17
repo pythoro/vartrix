@@ -9,8 +9,10 @@ from . import aliases
 from . import utils
 from . import settings
 from . import persist
+from . import context
 from . import container
 from . import automate
+from . import sequence
 from . import namespace
 
 
