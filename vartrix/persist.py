@@ -86,7 +86,7 @@ class Yaml(Handler):
 
     def load(self, fname, **kwargs):
         with open(fname, mode="r") as f:
-            y = yml.YAML(typ="safe", pure=True)
+            y = yml.YAML(typ="safe", pure=False)
             dct = y.load(f)
         return dct
 
