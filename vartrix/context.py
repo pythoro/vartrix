@@ -23,10 +23,14 @@ from . import sequence
 
 class Context(dict):
     """A dictionary-like object used to store attributes"""
-    
+
+    def __init__(self, *args, aliases=None, **kwargs):
+        self._aliases = aliases
+        dict.__init__(self, *args, **kwargs)
+
     def copy(self):
         d = dict.copy(self)
-        return Context(d)
+        return Context(d, aliases=self._aliases)
 
     def __setitem__(self, key: str, value: typing.Any) -> None:
         raise RuntimeError("Use the with_value method instead.")
@@ -45,7 +49,7 @@ class Context(dict):
             assert key in self, "Key not in container: " + str(key)
         d = dict.copy(self)
         d[key] = value
-        return Context(d)
+        return Context(d, aliases=self._aliases)
 
     def with_values(self, dct: dict, safe: bool = True) -> Context:
         """Return a new Context instance with multiple changed values"""
@@ -54,7 +58,7 @@ class Context(dict):
                 assert key in self, "Key not in container: " + str(key)
         d = dict.copy(self)
         d.update(dct)
-        return Context(d)
+        return Context(d, aliases=self._aliases)
 
     def get(self, key: str) -> typing.Any:
         """Get a value"""
@@ -62,7 +66,15 @@ class Context(dict):
 
     def __getitem__(self, key: str) -> typing.Any:
         """Get a value"""
-        val = dict.get(self, key)
+        try:
+            val = dict.__getitem__(self, key)
+        except KeyError:
+            if self._aliases is None:
+                raise KeyError("Key not in Context: " + str(key))
+            try:
+                val = dict.__getitem__(self, self._aliases[key])
+            except KeyError:
+                raise KeyError("Key not in Context or aliases: " + str(key))
         if isinstance(val, (list, dict, np.ndarray)):
             return val.copy()
         return val
