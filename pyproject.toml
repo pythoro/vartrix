@@ -1,6 +1,6 @@
 [project]
 name = "vartrix"
-version = "0.4.0"
+version = "0.5.0"
 description = "Easily manange and automate variables and parameters."
 authors = [{ name = "Reuben Rusk", email = "pythoro@mindquip.com" }]
 requires-python = "~=3.9"
